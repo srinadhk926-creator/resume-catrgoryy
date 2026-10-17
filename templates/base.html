@@ -3,32 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ResumeAI — Resume Category Classifier{% endblock %}</title>
+  <title>{% block title %}ResumeAI — Intelligent Resume Classification System{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Header / Navigation -->
   <header class="navbar">
     <div class="nav-container">
-      <a href="{{ url_for('main.index') }}" class="brand-logo">
-        <span class="logo-icon">📄</span>
-        <span class="logo-text">Resume<strong class="highlight">AI</strong></span>
+      <a href="{{ url_for('main.index') }}" class="brand-logo" aria-label="ResumeAI Home">
+        <svg class="brand-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span class="logo-text">Resume<span class="highlight">AI</span></span>
       </a>
-      <nav class="nav-links">
-        <a href="{{ url_for('main.index') }}" class="nav-item">Home</a>
-        <a href="{{ url_for('main.prediction') }}" class="nav-item">Classify Resume</a>
+
+      <!-- Mobile Navigation Toggle -->
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
+
+      <!-- Navigation Links -->
+      <nav class="nav-links" id="nav-links">
         {% if current_user %}
-          <a href="{{ url_for('main.dashboard') }}" class="nav-item">Dashboard</a>
-          <a href="{{ url_for('main.history') }}" class="nav-item">History</a>
-          <div class="user-menu">
-            <span class="user-greeting">👋 {{ current_user.name }}</span>
+          <!-- Logged-in navigation -->
+          <a href="{{ url_for('main.dashboard') }}" class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('main.prediction') }}" class="nav-item {% if request.endpoint == 'main.prediction' %}active{% endif %}">Analyze Resume</a>
+          <a href="{{ url_for('main.history') }}" class="nav-item {% if request.endpoint == 'main.history' %}active{% endif %}">History</a>
+          <a href="{{ url_for('main.profile') }}" class="nav-item {% if request.endpoint == 'main.profile' %}active{% endif %}">Profile</a>
+          <div class="user-menu-group">
+            <span class="user-name-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              {{ current_user.name }}
+            </span>
             <form action="{{ url_for('auth.logout') }}" method="POST" class="inline-form">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-outline btn-sm">Sign Out</button>
             </form>
           </div>
         {% else %}
-          <a href="{{ url_for('auth.login') }}" class="nav-item">Sign In</a>
+          <!-- Logged-out navigation -->
+          <a href="{{ url_for('main.index') }}" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}">Home</a>
+          <a href="{{ url_for('main.index') }}#features" class="nav-item">Features</a>
+          <a href="{{ url_for('main.index') }}#how-it-works" class="nav-item">How It Works</a>
+          <a href="{{ url_for('auth.login') }}" class="nav-item {% if request.endpoint == 'auth.login' %}active{% endif %}">Sign In</a>
           <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
         {% endif %}
       </nav>
@@ -40,29 +66,78 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">
-            <span>{{ message }}</span>
-            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+          <div class="alert alert-{{ category }}" role="alert">
+            <div class="alert-content">
+              {% if category == 'success' %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% elif category == 'danger' %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              {% elif category == 'warning' %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              {% else %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              {% endif %}
+              <span>{{ message }}</span>
+            </div>
+            <button class="alert-close" onclick="this.parentElement.remove();" aria-label="Close notification">&times;</button>
           </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
   </div>
 
-  <!-- Main Content Area -->
+  <!-- Main Body Content -->
   <main class="main-content">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
+  <!-- Professional Footer -->
   <footer class="footer">
-    <div class="container footer-content">
-      <p>&copy; 2026 <strong>ResumeAI</strong> — Full-Stack MLOps Classification System (2CEAI702).</p>
-      <p class="footer-links">
-        <a href="{{ url_for('main.health') }}" target="_blank">System Health JSON</a>
-        <span>•</span>
-        <span>Python 3.10 / 3.11 • scikit-learn • Flask • Docker</span>
-      </p>
+    <div class="container footer-container">
+      <div class="footer-brand-col">
+        <div class="brand-logo footer-logo">
+          <svg class="brand-icon-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <span>Resume<span class="highlight">AI</span></span>
+        </div>
+        <p class="footer-tagline">
+          AI-driven resume category classification and technical skill extraction platform for modern recruitment workflows.
+        </p>
+      </div>
+
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="{{ url_for('main.index') }}">Home</a>
+          <a href="{{ url_for('main.prediction') }}">Analyze Resume</a>
+          <a href="{{ url_for('main.health') }}" target="_blank">Health Status</a>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          {% if current_user %}
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.history') }}">History</a>
+            <a href="{{ url_for('main.profile') }}">Profile</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}">Sign In</a>
+            <a href="{{ url_for('auth.register') }}">Create Account</a>
+          {% endif %}
+        </div>
+        <div class="footer-col">
+          <h4>Technology</h4>
+          <span>TF-IDF Vectorizer</span>
+          <span>Logistic Regression</span>
+          <span>PyMuPDF & python-docx</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; 2026 ResumeAI Platform. All rights reserved. Built with precision and privacy.</p>
+        <div class="footer-privacy-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          In-Memory Processing • No Permanent Document Storage
+        </div>
+      </div>
     </div>
   </footer>
 

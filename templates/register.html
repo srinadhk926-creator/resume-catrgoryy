@@ -6,35 +6,45 @@
 <div class="container auth-container">
   <div class="card auth-card">
     <div class="auth-header">
-      <span class="auth-icon">📝</span>
-      <h2 class="card-title">Create an Account</h2>
-      <p class="card-text">Join ResumeAI to track your candidate classifications and access history.</p>
+      <div class="auth-icon-circle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+      </div>
+      <h2 class="auth-title">Create an Account</h2>
+      <p class="auth-subtitle">Get instant access to AI candidate resume classification.</p>
     </div>
 
-    <form action="{{ url_for('auth.register') }}" method="POST" class="auth-form">
+    <form action="{{ url_for('auth.register') }}" method="POST" class="auth-form" id="register-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <div class="form-group">
         <label for="name" class="form-label">Full Name</label>
-        <input type="text" name="name" id="name" class="form-control" value="{{ name or '' }}" placeholder="Sarah Connor" required autofocus>
+        <input type="text" name="name" id="name" class="form-control" value="{{ name or '' }}" placeholder="Sarah Connor" autocomplete="name" required autofocus>
       </div>
 
       <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
-        <input type="email" name="email" id="email" class="form-control" value="{{ email or '' }}" placeholder="sarah@example.com" required>
+        <label for="email" class="form-label">Work Email Address</label>
+        <input type="email" name="email" id="email" class="form-control" value="{{ email or '' }}" placeholder="name@company.com" autocomplete="email" required>
       </div>
 
       <div class="form-group">
         <label for="password" class="form-label">Password</label>
-        <input type="password" name="password" id="password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+        <div class="password-input-wrapper">
+          <input type="password" name="password" id="password" class="form-control" placeholder="At least 6 characters" minlength="6" autocomplete="new-password" required>
+          <button type="button" class="btn-toggle-password" id="toggle-password-reg" aria-label="Show or hide password">
+            <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg class="eye-closed" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="confirm_password" class="form-label">Confirm Password</label>
-        <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Re-enter password" minlength="6" required>
+        <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Re-enter password" minlength="6" autocomplete="new-password" required>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
+      <button type="submit" class="btn btn-primary btn-block btn-lg auth-submit-btn">
+        Create Free Account
+      </button>
     </form>
 
     <div class="auth-footer">

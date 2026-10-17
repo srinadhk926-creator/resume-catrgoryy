@@ -70,6 +70,7 @@ D:\MLOPS/
 │   ├── upload.html
 │   ├── result.html
 │   ├── history.html
+│   ├── profile.html
 │   └── 404.html
 ├── static/
 │   ├── css/style.css           # SaaS design system & responsive styling

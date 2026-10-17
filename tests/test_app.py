@@ -15,18 +15,29 @@ def test_landing_page(client):
     assert b"Resume Category Classification" in response.data
 
 
-def test_prediction_get_page(client):
-    response = client.get("/prediction")
+def test_prediction_guest_redirect(client):
+    resp_get = client.get("/prediction")
+    assert resp_get.status_code == 302
+    assert "/login" in resp_get.headers["Location"]
+    assert "next=" in resp_get.headers["Location"]
+
+    resp_post = client.post("/prediction", data={"resume_text": "Sample text here"})
+    assert resp_post.status_code == 302
+    assert "/login" in resp_post.headers["Location"]
+
+
+def test_prediction_authenticated_get(auth_client):
+    response = auth_client.get("/prediction")
     assert response.status_code == 200
     assert b"Classify Candidate Resume" in response.data
     assert b"drop-zone" in response.data
 
 
-def test_prediction_post_pdf_anonymous(client, sample_pdf_bytes):
+def test_prediction_post_pdf_authenticated(auth_client, sample_pdf_bytes):
     data = {
         "resume_file": (io.BytesIO(sample_pdf_bytes), "sample_resume.pdf"),
     }
-    response = client.post("/prediction", data=data, content_type="multipart/form-data")
+    response = auth_client.post("/prediction", data=data, content_type="multipart/form-data")
     assert response.status_code == 200
     assert b"Predicted Resume Category" in response.data
     assert b"sample_resume.pdf" in response.data
@@ -50,20 +61,20 @@ def test_prediction_post_docx_authenticated(auth_client, app, sample_docx_bytes)
         assert pred.confidence > 0.0
 
 
-def test_prediction_post_empty_file(client):
+def test_prediction_post_empty_file(auth_client):
     data = {
         "resume_file": (io.BytesIO(b""), "empty.pdf"),
     }
-    response = client.post("/prediction", data=data, content_type="multipart/form-data")
+    response = auth_client.post("/prediction", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
     assert b"empty" in response.data.lower()
 
 
-def test_prediction_post_invalid_extension(client):
+def test_prediction_post_invalid_extension(auth_client):
     data = {
         "resume_file": (io.BytesIO(b"Fake content"), "resume.txt"),
     }
-    response = client.post("/prediction", data=data, content_type="multipart/form-data")
+    response = auth_client.post("/prediction", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
     assert b"unsupported" in response.data.lower()
 
@@ -159,3 +170,24 @@ def test_404_error_page(client):
     response = client.get("/non-existent-page-url")
     assert response.status_code == 404
     assert b"Page Not Found" in response.data or b"404" in response.data
+
+
+def test_profile_authenticated(auth_client):
+    response = auth_client.get("/profile")
+    assert response.status_code == 200
+    assert b"Account Profile" in response.data
+    assert b"candidate@test.com" in response.data
+
+
+def test_profile_unauthenticated(client):
+    response = client.get("/profile")
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+    assert "next=" in response.headers["Location"]
+
+
+def test_landing_page_logged_in(auth_client):
+    response = auth_client.get("/")
+    assert response.status_code == 200
+    assert b"Dashboard" in response.data
+    assert b"Sign Out" in response.data

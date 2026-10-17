@@ -141,12 +141,33 @@ def test_logout(client):
 
 
 def test_protected_routes_require_login(client):
-    # Attempting to access dashboard while logged out
-    dash_resp = client.get("/dashboard")
-    assert dash_resp.status_code == 302
-    assert "/login" in dash_resp.headers["Location"]
+    for route in ["/dashboard", "/history", "/prediction", "/profile"]:
+        resp = client.get(route)
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+        assert "next=" in resp.headers["Location"]
 
-    # Attempting to access history while logged out
-    hist_resp = client.get("/history")
-    assert hist_resp.status_code == 302
-    assert "/login" in hist_resp.headers["Location"]
+
+def test_login_safe_next_redirect(client, app):
+    with app.app_context():
+        db = get_db()
+        user = User(name="RedirectUser", email="redirect@example.com")
+        user.set_password("pass12345")
+        db.add(user)
+        db.commit()
+
+    # Safe relative next redirect
+    resp = client.post("/login?next=%2Fprediction", data={
+        "email": "redirect@example.com",
+        "password": "pass12345",
+    })
+    assert resp.status_code == 302
+    assert resp.headers["Location"] == "/prediction"
+
+    # Unsafe external next redirect should fallback to dashboard
+    resp_unsafe = client.post("/login?next=https%3A%2F%2Fevil.com", data={
+        "email": "redirect@example.com",
+        "password": "pass12345",
+    })
+    assert resp_unsafe.status_code == 302
+    assert "/dashboard" in resp_unsafe.headers["Location"]

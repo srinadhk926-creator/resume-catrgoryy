@@ -64,6 +64,7 @@ def health():
 
 
 @main_bp.route("/prediction", methods=["GET", "POST"])
+@login_required
 def prediction():
     """
     Upload and classify resume.
@@ -215,3 +216,24 @@ def delete_prediction(prediction_id: int):
         flash("Failed to delete the record.", "danger")
 
     return redirect(url_for("main.history"))
+
+
+@main_bp.route("/profile")
+@login_required
+def profile():
+    """User profile overview showing account details and classification metrics."""
+    db = get_db()
+    total_predictions = db.query(Prediction).filter_by(user_id=g.user.id).count()
+    first_prediction = (
+        db.query(Prediction)
+        .filter_by(user_id=g.user.id)
+        .order_by(Prediction.created_at.asc())
+        .first()
+    )
+
+    return render_template(
+        "profile.html",
+        user=g.user,
+        total_predictions=total_predictions,
+        first_prediction=first_prediction,
+    )

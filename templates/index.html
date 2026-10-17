@@ -1,108 +1,254 @@
 {% extends "base.html" %}
 
-{% block title %}ResumeAI — Automated Resume Category Classification{% endblock %}
+{% block title %}ResumeAI — Intelligent Career Category Classification Platform{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="landing-wrapper">
   <!-- Hero Section -->
   <section class="hero-section">
-    <div class="hero-badge">🚀 College Practicals 1–4 • 2CEAI702 MLOps</div>
-    <h1 class="hero-title">Intelligent Resume Category Classification</h1>
-    <p class="hero-subtitle">
-      Automate talent parsing with machine learning. Upload resumes in PDF or DOCX format, extract clean textual features, and instantly classify job candidates into industry categories using TF-IDF and Logistic Regression.
-    </p>
-    <div class="hero-actions">
-      <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-lg">Upload Resume</a>
-      {% if not current_user %}
-        <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg">Create Free Account</a>
-      {% else %}
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-lg">Open Dashboard</a>
-      {% endif %}
+    <div class="container hero-container">
+      <div class="hero-content">
+        <div class="hero-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path></svg>
+          AI-Powered Resume Category Classification
+        </div>
+        <h1 class="hero-headline">
+          Discover the Right Career Category for <span class="gradient-text">Every Resume</span>
+        </h1>
+        <p class="hero-subtext">
+          Analyze resume content with AI-powered text classification and uncover the skills and signals that help describe a candidate's professional profile.
+        </p>
+
+        <div class="hero-cta-group">
+          {% if current_user %}
+            <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Analyze Resume Now
+            </a>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-lg">
+              Open Workspace
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+              Get Started
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">
+              Sign In
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="hero-trust-bar">
+          <span class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            PDF & DOCX Support
+          </span>
+          <span class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            In-Memory Privacy
+          </span>
+          <span class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Instant Probability Scoring
+          </span>
+        </div>
+      </div>
+
+      <!-- Realistic Product Preview UI Mockup -->
+      <div class="hero-mockup-wrapper">
+        <div class="mockup-window">
+          <div class="mockup-header">
+            <div class="mockup-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <div class="mockup-address-bar">resumeai.platform/app/prediction</div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-card-result">
+              <div class="mockup-tag">Identified Domain</div>
+              <div class="mockup-role">DevOps Engineer</div>
+              <div class="mockup-meter">
+                <div class="mockup-meter-header">
+                  <span>Confidence Estimate</span>
+                  <strong>88.5%</strong>
+                </div>
+                <div class="mockup-bar">
+                  <div class="mockup-bar-fill" style="width: 88.5%;"></div>
+                </div>
+              </div>
+              <div class="mockup-skills-list">
+                <span class="mockup-pill">Kubernetes</span>
+                <span class="mockup-pill">Docker</span>
+                <span class="mockup-pill">Terraform</span>
+                <span class="mockup-pill">AWS EC2</span>
+                <span class="mockup-pill">CI/CD</span>
+                <span class="mockup-pill">Prometheus</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- MLOps Practicals Architecture Cards -->
-  <section class="section">
-    <h2 class="section-title">End-to-End MLOps System Pipeline</h2>
-    <p class="section-desc">Structured according to the four laboratory practicals of 2CEAI702.</p>
-    
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-icon">🧪</div>
-        <h3 class="card-title">Practical 1: Flask ML System</h3>
-        <p class="card-text">
-          Modular Flask application with scikit-learn Pipeline serialization (TF-IDF + Logistic Regression), input validation, SQLAlchemy persistence, and unit tests.
-        </p>
+  <!-- Core Features Section -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-eyebrow">Enterprise Capabilities</span>
+        <h2 class="section-title">Designed for Accurate Resume Intelligence</h2>
+        <p class="section-subtitle">A modern classification architecture that turns unstructured candidate resumes into structured domain insights.</p>
       </div>
 
-      <div class="card">
-        <div class="card-icon">🐳</div>
-        <h3 class="card-title">Practical 2: Docker Container</h3>
-        <p class="card-text">
-          Containerized with multi-stage Python 3.11-slim base image, non-root user permissions, Gunicorn WSGI server on port 5000, and isolated environments.
-        </p>
-      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </div>
+          <h3>Resume Classification</h3>
+          <p>Trained with TF-IDF vectorization and Logistic Regression across 10 distinct technical and business job domains.</p>
+        </div>
 
-      <div class="card">
-        <div class="card-icon">☁️</div>
-        <h3 class="card-title">Practical 3: AWS EC2 Cloud</h3>
-        <p class="card-text">
-          Deployed on an Ubuntu EC2 instance with custom Security Groups (SSH Port 22 and TCP Port 5000), systemd Docker service, and remote verification.
-        </p>
-      </div>
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <h3>Skills & Keyword Extraction</h3>
+          <p>Extracts technical keywords, frameworks, and domain proficiencies directly from resume paragraphs.</p>
+        </div>
 
-      <div class="card">
-        <div class="card-icon">🌐</div>
-        <h3 class="card-title">Practical 4: Google Cloud Platform</h3>
-        <p class="card-text">
-          Provisioned on Google Compute Engine VM, protected with VPC ingress firewall rules (<code>allow-ml-app-5000</code>), and containerized restart policies.
-        </p>
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <h3>Probability Breakdown</h3>
+          <p>View full posterior probability distributions across alternative categories to catch hybrid or cross-domain candidates.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3>Analysis History & Audit</h3>
+          <p>Persist predictions securely in your personal workspace database with complete audit timestamps and record management.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Supported Resume Categories -->
-  <section class="section">
-    <h2 class="section-title">Recognized Resume Categories</h2>
-    <p class="section-desc">Trained across major software engineering, data science, and IT roles.</p>
-    
-    <div class="pills-grid">
-      <span class="category-pill">📊 Data Science</span>
-      <span class="category-pill">🐍 Python Developer</span>
-      <span class="category-pill">☕ Java Developer</span>
-      <span class="category-pill">☸️ DevOps Engineer</span>
-      <span class="category-pill">🎨 Web Designing</span>
-      <span class="category-pill">💻 Software Engineer</span>
-      <span class="category-pill">👥 Human Resources (HR)</span>
-      <span class="category-pill">📈 Business Analyst</span>
-      <span class="category-pill">🗄️ Database Administrator</span>
-      <span class="category-pill">🛡️ Network Security Engineer</span>
+  <!-- 3-Step Workflow -->
+  <section class="section workflow-section" id="how-it-works">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-eyebrow">Seamless Experience</span>
+        <h2 class="section-title">How ResumeAI Works in 3 Simple Steps</h2>
+        <p class="section-subtitle">From document upload to classification insights in seconds.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-badge">Step 1</div>
+          <h3>Upload or Paste</h3>
+          <p>Drag and drop a PDF or DOCX file up to 5 MB, or paste raw candidate text into the analysis portal.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-badge">Step 2</div>
+          <h3>Machine Learning Analysis</h3>
+          <p>PyMuPDF or python-docx safely parses text, extracts n-gram features, and feeds vectors into the classifier.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-badge">Step 3</div>
+          <h3>Review Insights</h3>
+          <p>Inspect the predicted job role, confidence score, recognized skills, and store results to your workspace.</p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- How It Works Section -->
-  <section class="section how-it-works">
-    <h2 class="section-title">How It Works</h2>
-    <div class="steps-row">
-      <div class="step-item">
-        <div class="step-number">1</div>
-        <h4>Upload Document</h4>
-        <p>Upload any standard PDF or Word DOCX resume up to 5 MB.</p>
+  <!-- Benefits Section -->
+  <section class="section benefits-section">
+    <div class="container">
+      <div class="benefits-grid">
+        <div class="benefits-text-col">
+          <span class="section-eyebrow">Why ResumeAI</span>
+          <h2 class="section-title text-left">Organize and Accelerate Your Resume Review Process</h2>
+          <p class="section-subtitle text-left">
+            Manual resume triage is slow and error-prone. ResumeAI equips technical recruiters, hiring managers, and career advisors with instantaneous role classification.
+          </p>
+          <ul class="benefits-list">
+            <li>
+              <div class="check-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div>
+                <strong>Automated First-Pass Screening</strong>
+                <p>Categorize incoming resumes into distinct talent pools automatically.</p>
+              </div>
+            </li>
+            <li>
+              <div class="check-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div>
+                <strong>Zero Document Persistence</strong>
+                <p>Uploaded documents are processed in memory and never stored permanently on disk.</p>
+              </div>
+            </li>
+            <li>
+              <div class="check-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div>
+                <strong>Programmatic REST API</strong>
+                <p>Connect your existing ATS or talent software directly via <code>/api/predict</code>.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="benefits-visual-col">
+          <div class="categories-matrix-card">
+            <h3>Supported Roles & Categories</h3>
+            <div class="matrix-pills">
+              <span>Data Science</span>
+              <span>Python Developer</span>
+              <span>Java Developer</span>
+              <span>DevOps Engineer</span>
+              <span>Web Designing</span>
+              <span>Software Engineer</span>
+              <span>HR & Recruitment</span>
+              <span>Business Analyst</span>
+              <span>Database Administrator</span>
+              <span>Network Security</span>
+            </div>
+            <div class="matrix-footer">
+              <span>Classified using trained vocabulary & scikit-learn models</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="step-item">
-        <div class="step-number">2</div>
-        <h4>Extract & Preprocess</h4>
-        <p>PyMuPDF or python-docx safely parses textual content into tokens.</p>
-      </div>
-      <div class="step-item">
-        <div class="step-number">3</div>
-        <h4>ML Inference</h4>
-        <p>TF-IDF extracts features and the classifier predicts the optimal domain.</p>
-      </div>
-      <div class="step-item">
-        <div class="step-number">4</div>
-        <h4>Actionable Insights</h4>
-        <p>View domain probabilities, confidence score, and matched skills.</p>
+    </div>
+  </section>
+
+  <!-- Final CTA Section -->
+  <section class="final-cta-section">
+    <div class="container">
+      <div class="final-cta-box">
+        <h2>Ready to Classify Resumes with AI?</h2>
+        <p>Create a free account to access the prediction portal, track your history, and experience intelligent candidate categorization.</p>
+        <div class="final-cta-buttons">
+          {% if current_user %}
+            <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-lg">Analyze a Resume</a>
+          {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Create Free Account</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">Sign In to Account</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </section>

@@ -41,6 +41,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Mobile navigation menu toggle
+  const mobileNavToggle = document.getElementById("mobile-nav-toggle");
+  const navLinks = document.getElementById("nav-links");
+  if (mobileNavToggle && navLinks) {
+    mobileNavToggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("open");
+      mobileNavToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+  }
+
+  // Password visibility toggle helper
+  function setupPasswordToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      const eyeOpen = btn.querySelector(".eye-open");
+      const eyeClosed = btn.querySelector(".eye-closed");
+      if (eyeOpen && eyeClosed) {
+        eyeOpen.style.display = isPassword ? "none" : "block";
+        eyeClosed.style.display = isPassword ? "block" : "none";
+      }
+      btn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+    });
+  }
+
+  setupPasswordToggle("toggle-password", "password");
+  setupPasswordToggle("toggle-password-reg", "password");
+
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const ALLOWED_EXTS = ["pdf", "docx"];
 

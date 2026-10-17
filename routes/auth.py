@@ -28,11 +28,11 @@ def login_required(view):
     """Decorator to require authenticated user session for view functions."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if "user_id" not in session:
+        if "user_id" not in session or getattr(g, "user", None) is None:
             if request.is_json or request.path.startswith("/api/"):
                 return jsonify({"error": "Unauthorized. Please log in first."}), 401
             flash("Please sign in to access this page.", "warning")
-            return redirect(url_for("auth.login", next=request.url))
+            return redirect(url_for("auth.login", next=request.path))
         return view(**kwargs)
     return wrapped_view
 
