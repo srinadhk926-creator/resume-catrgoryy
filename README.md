@@ -119,10 +119,23 @@ Train the model and save the fitted scikit-learn pipeline to `model/resume_class
 
 ```powershell
 # Train using the smoke-test seed dataset
-python train_model.py --dataset data/sample_resumes.csv
+python train_model.py --dataset data/sample_resumes.csv --output model/resume_classifier.joblib
 
 # Or train using the full Kaggle dataset
-python train_model.py --dataset data/UpdatedResumeDataSet.csv
+python train_model.py --dataset data/UpdatedResumeDataSet.csv --output model/resume_classifier.joblib
+```
+
+### 5.1 Programmatic Inference via PredictionService
+```python
+from services.prediction_service import get_prediction_service
+
+service = get_prediction_service()
+result = service.predict("Experienced DevOps engineer with Docker, Kubernetes, Terraform, and AWS.")
+
+print("Predicted Category:", result["predicted_category"])
+print("Confidence:", result["confidence"])
+print("Keywords:", result["top_keywords"])
+print("Probabilities:", result["probabilities"][:3])
 ```
 
 ---

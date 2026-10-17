@@ -1,0 +1,115 @@
+{
+  "dataset_path": "data/sample_resumes.csv",
+  "total_samples": 40,
+  "train_samples": 30,
+  "test_samples": 10,
+  "categories_count": 10,
+  "categories": [
+    "Business Analyst",
+    "Data Science",
+    "Database Administrator",
+    "DevOps Engineer",
+    "HR",
+    "Java Developer",
+    "Network Security Engineer",
+    "Python Developer",
+    "Software Engineer",
+    "Web Designing"
+  ],
+  "selected_model": "Logistic Regression",
+  "is_smoke_test": true,
+  "was_stratified": true,
+  "random_seed": 42,
+  "metrics": {
+    "accuracy": 0.9,
+    "precision_weighted": 0.85,
+    "recall_weighted": 0.9,
+    "f1_weighted": 0.8667
+  },
+  "classification_report": {
+    "Business Analyst": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Data Science": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Database Administrator": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "DevOps Engineer": {
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1-score": 0.6666666666666666,
+      "support": 1.0
+    },
+    "HR": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Java Developer": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Network Security Engineer": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Python Developer": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 1.0
+    },
+    "Software Engineer": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "Web Designing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "accuracy": 0.9,
+    "macro avg": {
+      "precision": 0.85,
+      "recall": 0.9,
+      "f1-score": 0.8666666666666666,
+      "support": 10.0
+    },
+    "weighted avg": {
+      "precision": 0.85,
+      "recall": 0.9,
+      "f1-score": 0.8666666666666666,
+      "support": 10.0
+    }
+  },
+  "comparison": {
+    "logistic_regression": {
+      "accuracy": 0.9,
+      "f1_weighted": 0.8667
+    },
+    "naive_bayes": {
+      "accuracy": 0.9,
+      "f1_weighted": 0.8667
+    }
+  },
+  "trained_at": "2026-10-17T19:24:21.708514Z"
+}
