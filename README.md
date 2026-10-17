@@ -229,38 +229,91 @@ All tests use temporary SQLite databases and generated in-memory PDF/DOCX docume
 
 ---
 
-## 8. Docker & Cloud Deployment Commands
+## 9. Docker & Containerization (Practical 2)
 
-### Practical 2: Local Docker Container
+The application includes a production-grade `Dockerfile` using `python:3.10-slim`, non-root execution (`appuser`), Gunicorn WSGI server, container healthchecks, and volume-mounted persistent storage for SQLite.
+
+### 9.1 Build Docker Image
 ```powershell
-# Build Docker image
-docker build -t resume-classifier:1.0 .
-
-# Run container
-docker run -d --name resume-classifier-app -p 5000:5000 resume-classifier:1.0
-
-# Verify
-docker ps
-curl http://localhost:5000/health
+docker build -t resumeai:local .
 ```
+
+### 9.2 Run Container with Persistent Volume
+```powershell
+# Run with mapped port 5000:5000 and named volume for database persistence
+docker run -d `
+  --name resumeai-app `
+  --restart unless-stopped `
+  -p 5000:5000 `
+  -v resumeai_data:/app/instance `
+  resumeai:local
+```
+
+### 9.3 Alternative: Docker Compose
+```powershell
+# Start container with volume persistence
+docker compose up -d
+
+# Check running status and health
+docker compose ps
+
+# View container logs
+docker compose logs -f
+```
+
+### 9.4 Verify Container Health & Endpoints
+```powershell
+# Check container status
+docker ps
+
+# Inspect Docker healthcheck
+docker inspect --format='{{json .State.Health.Status}}' resumeai-app
+
+# Query container health endpoint
+Invoke-RestMethod -Uri "http://localhost:5000/health" -Method Get
+
+# Query prediction API inside container
+$body = @{ text = "Senior DevOps Engineer with Kubernetes, Docker, Terraform, and AWS." } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:5000/api/predict" -Method Post -Body $body -ContentType "application/json"
+```
+
+### 9.5 Container Lifecycle Commands
+```powershell
+# View real-time logs
+docker logs -f resumeai-app
+
+# Stop container
+docker stop resumeai-app
+
+# Start container
+docker start resumeai-app
+
+# Remove container
+docker rm -f resumeai-app
+```
+
+---
+
+## 10. Cloud Deployment (Practicals 3 & 4)
 
 ### Practical 3: AWS EC2 Deployment
 ```bash
-# Connect to EC2
+# 1. Connect to EC2 instance via SSH
 ssh -i "your-key.pem" ubuntu@YOUR_EC2_PUBLIC_IP
 
-# Install Docker on EC2
+# 2. Install Docker on Ubuntu EC2
 sudo apt update && sudo apt install -y docker.io
 sudo systemctl enable --now docker
 
-# Run application container
-sudo docker run -d --name resume-classifier-app --restart unless-stopped -p 5000:5000 resume-classifier:1.0
+# 3. Transfer source / load image and run container
+sudo docker run -d --name resumeai-app --restart unless-stopped -p 5000:5000 -v resumeai_data:/app/instance resumeai:local
 ```
 
 ### Practical 4: Google Cloud Platform (GCP) Deployment
 ```bash
-# Connect via SSH in browser or gcloud
-# Configure firewall rule allow-ml-app-5000 for TCP:5000
-# Run container on GCP VM
-sudo docker run -d --name resume-classifier-app --restart unless-stopped -p 5000:5000 resume-classifier:1.0
+# 1. Connect to GCP Compute Engine VM via SSH
+# 2. Configure VPC ingress firewall rule allow-ml-app-5000 (TCP:5000)
+# 3. Run container on GCP VM
+sudo docker run -d --name resumeai-app --restart unless-stopped -p 5000:5000 -v resumeai_data:/app/instance resumeai:local
 ```
+

@@ -1,40 +1,45 @@
 # Virtual environments
-venv/
 .venv/
+venv/
 env/
+ENV/
 
-# Git metadata
-.git/
-.gitignore
-
-# Cache and bytecode
+# Bytecode & Caches
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 .pytest_cache/
 .coverage
 htmlcov/
+*.log
 
-# Sensitive data and environment files
+# Git & IDE files
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets and environment files
 .env
+.env.*
+!.env.example
 *.pem
 *.key
 *.cer
+*.crt
 
-# Local SQLite databases
+# Local test databases & instance directories
 instance/
 *.sqlite
 *.sqlite3
 *.db
 
-# Temporary and upload directories
+# Temporary directories and tests
 uploads/
 temp/
+tests/
 
-# Large local datasets
-data/UpdatedResumeDataSet.csv
-data/*.pdf
-data/*.docx
-
-# IDE files
-.vscode/
-.idea/
+# Large training datasets (not needed at container runtime)
+data/

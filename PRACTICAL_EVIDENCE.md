@@ -156,4 +156,148 @@ To convert a machine learning model developed in a training pipeline into a stru
 | **Automated Test Suite (45 Tests)** | ✅ Verified | Screenshot 8 (`pytest -v`) |
 
 ---
-*Next: Practical 2 (Docker Containerization) instructions will follow once Practical 1 is signed off.*
+
+# PRACTICAL 2: Dockerizing the Machine Learning System
+
+### Aim:
+To create a production-appropriate Dockerfile for the Flask-based machine learning application, build a Docker image, run the image as an isolated container with persistent SQLite volume storage and non-root execution, and verify the application's functionality.
+
+---
+
+### Step-by-Step Execution & Screenshot Checklist
+
+#### 📸 Screenshot 9: Docker Engine Status & Version
+- **Purpose**: Verify that Docker Engine is installed and active on the host.
+- **Where to Execute**: Windows PowerShell.
+- **Command to Run**:
+  ```powershell
+  docker --version
+  docker info
+  ```
+- **What to Capture in Screenshot**:
+  1. Docker client version (`Docker version 29.3.1` or current).
+  2. Server information showing Linux containers / WSL2 engine running.
+
+---
+
+#### 📸 Screenshot 10: Docker Image Build Output
+- **Purpose**: Demonstrate successful image build without cache corruption or build errors.
+- **Where to Execute**: Windows PowerShell in `D:\MLOPS`.
+- **Command to Run**:
+  ```powershell
+  docker build -t resumeai:local .
+  ```
+- **What to Capture in Screenshot**:
+  1. Build steps executing: Python 3.10-slim base, dependency installation from `requirements.txt`, creation of `appuser`, copying source files and `model/resume_classifier.joblib`.
+  2. Final confirmation: `naming to docker.io/library/resumeai:local done` or `Successfully tagged resumeai:local`.
+
+---
+
+#### 📸 Screenshot 11: Docker Images Listing & Image Size
+- **Purpose**: Verify that the image was registered locally and inspect its footprint.
+- **Where to Execute**: Windows PowerShell.
+- **Command to Run**:
+  ```powershell
+  docker images | Select-String -Pattern "resumeai|REPOSITORY"
+  ```
+- **What to Capture in Screenshot**:
+  1. Repository: `resumeai`.
+  2. Tag: `local`.
+  3. Image ID and actual compressed virtual size.
+
+---
+
+#### 📸 Screenshot 12: Running Container & Port Mapping (`docker ps`)
+- **Purpose**: Confirm container is running in detached mode with port 5000 mapped and healthcheck active.
+- **Where to Execute**: Windows PowerShell.
+- **Command to Run**:
+  ```powershell
+  docker run -d --name resumeai-app -p 5000:5000 -v resumeai_data:/app/instance resumeai:local
+  docker ps
+  ```
+- **What to Capture in Screenshot**:
+  1. Container ID output from `docker run`.
+  2. `docker ps` table showing `NAMES: resumeai-app`, `PORTS: 0.0.0.0:5000->5000/tcp`, `STATUS: Up ... (healthy)`.
+
+---
+
+#### 📸 Screenshot 13: Container Gunicorn Startup Logs
+- **Purpose**: Verify that Gunicorn WSGI server spawned workers cleanly under the non-root user.
+- **Where to Execute**: Windows PowerShell.
+- **Command to Run**:
+  ```powershell
+  docker logs resumeai-app
+  ```
+- **What to Capture in Screenshot**:
+  1. Gunicorn logging: `[INFO] Starting gunicorn ... Listening at: http://0.0.0.0:5000`.
+  2. Worker processes booting without Python exceptions or missing module errors.
+
+---
+
+#### 📸 Screenshot 14: Containerized Web Interface in Browser
+- **Purpose**: Demonstrate that the containerized application serves the UI to local clients.
+- **Where to Execute**: Web Browser.
+- **URL to Open**:
+  ```
+  http://localhost:5000/prediction
+  ```
+- **What to Capture in Screenshot**:
+  1. Browser showing `http://localhost:5000/prediction`.
+  2. Upload interface rendered directly from the running container.
+
+---
+
+#### 📸 Screenshot 15: Containerized Prediction & Health Verification
+- **Purpose**: Prove end-to-end inference and health checking through container port forwarding.
+- **Where to Execute**: Windows PowerShell.
+- **Commands to Run**:
+  ```powershell
+  # 1. Healthcheck verification
+  Invoke-RestMethod -Uri "http://localhost:5000/health" -Method Get
+
+  # 2. Real inference through containerized API
+  $body = @{ text = "Senior DevOps Engineer with Kubernetes, Docker, Terraform, AWS EC2, and CI/CD." } | ConvertTo-Json
+  Invoke-RestMethod -Uri "http://localhost:5000/api/predict" -Method Post -Body $body -ContentType "application/json"
+  ```
+- **What to Capture in Screenshot**:
+  1. Health check returning `status: ok`, `model_loaded: True`.
+  2. API prediction returning `predicted_category: DevOps Engineer`, confidence score, and extracted skills.
+
+---
+
+#### 📸 Screenshot 16: Container Lifecycle & Volume Persistence
+- **Purpose**: Demonstrate container restart without data loss using named Docker volume `resumeai_data`.
+- **Where to Execute**: Windows PowerShell.
+- **Commands to Run**:
+  ```powershell
+  # Inspect health and volume
+  docker inspect --format='{{json .State.Health.Status}}' resumeai-app
+  docker volume ls | Select-String "resumeai_data"
+
+  # Restart container to verify persistence
+  docker restart resumeai-app
+  docker ps
+  ```
+- **What to Capture in Screenshot**:
+  1. Health status reporting `"healthy"`.
+  2. Named volume `resumeai_data` attached to `/app/instance`.
+  3. Clean container restart.
+
+---
+
+### Summary Checklist for Practical 2 Submission
+
+| Requirement | Status | Verification Reference |
+| :--- | :---: | :--- |
+| **Dockerfile Created** | ✅ Verified | Multi-stage / Python 3.10-slim, non-root user, Gunicorn on `0.0.0.0:5000` |
+| **.dockerignore Configured** | ✅ Verified | Excludes venvs, `.env`, caches, git, and local test DBs |
+| **Docker Compose Configured** | ✅ Verified | `docker-compose.yml` with persistent named volume `resumeai_data` |
+| **Docker Build Execution** | Ready to capture | Screenshot 10 (`docker build -t resumeai:local .`) |
+| **Docker Container Execution** | Ready to capture | Screenshot 12 (`docker ps`) |
+| **Gunicorn Logs Inspection** | Ready to capture | Screenshot 13 (`docker logs resumeai-app`) |
+| **Container Healthcheck** | Ready to capture | Screenshot 15 (`/health` & `docker inspect`) |
+| **Containerized Inference** | Ready to capture | Screenshot 15 (`/api/predict` JSON curl) |
+| **Volume Persistence** | Ready to capture | Screenshot 16 (`docker volume ls`, `docker restart`) |
+
+---
+*Next: Practical 3 (AWS EC2 Deployment) and Practical 4 (GCP Compute Engine Deployment) instructions will follow once Practical 2 is completed.*
