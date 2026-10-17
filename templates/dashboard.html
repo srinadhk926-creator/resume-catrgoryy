@@ -13,7 +13,7 @@
     <div class="banner-action">
       <a href="{{ url_for('main.prediction') }}" class="btn btn-primary-light">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Analyze New Resume
+        Analyze Resume
       </a>
     </div>
   </div>
@@ -26,7 +26,7 @@
       </div>
       <div class="stat-content">
         <span class="stat-number">{{ total_predictions }}</span>
-        <span class="stat-label">Total Resumes Analyzed</span>
+        <span class="stat-label">Total Completed Analyses</span>
       </div>
     </div>
 
@@ -36,33 +36,99 @@
       </div>
       <div class="stat-content">
         <span class="stat-number">
-          {% if category_counts %}{{ category_counts[0][0] }}{% else %}N/A{% endif %}
+          {% if category_counts %}{{ category_counts[0][0] }}{% else %}None yet{% endif %}
         </span>
-        <span class="stat-label">Top Predicted Category</span>
+        <span class="stat-label">Most Frequent Category</span>
       </div>
     </div>
 
     <div class="stat-card">
       <div class="stat-icon-wrapper">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
       </div>
       <div class="stat-content">
-        <span class="stat-number text-success">Active</span>
-        <span class="stat-label">Classifier Pipeline Status</span>
+        <span class="stat-number stat-date">
+          {% if latest_prediction %}{{ latest_prediction.created_at.strftime('%b %d, %Y') }}{% else %}No activity{% endif %}
+        </span>
+        <span class="stat-label">Latest Analysis Date</span>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard Main Grid -->
+  <!-- Latest Analysis Report Spotlight -->
+  {% if latest_prediction %}
+    <div class="card latest-report-card">
+      <div class="latest-report-header">
+        <div class="latest-report-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Latest Completed Analysis Report
+        </div>
+        <span class="latest-report-date text-muted text-sm">
+          Processed on {{ latest_prediction.created_at.strftime('%B %d, %Y at %H:%M UTC') }}
+        </span>
+      </div>
+
+      <div class="latest-report-body">
+        <div class="latest-report-main">
+          <div class="latest-file-info">
+            <div class="file-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <div>
+              <h3 class="latest-filename">{{ latest_prediction.original_filename }}</h3>
+              <div class="latest-tags">
+                <span class="badge badge-primary">{{ latest_prediction.predicted_category }}</span>
+                <span class="latest-conf-tag"><strong>{{ latest_prediction.confidence_percentage }}%</strong> Posterior Confidence</span>
+              </div>
+            </div>
+          </div>
+
+          {% if latest_prediction.top_keywords %}
+            <div class="latest-skills">
+              <span class="latest-skills-label">Identified Skills:</span>
+              <div class="pills-grid justify-start">
+                {% for kw in latest_prediction.top_keywords[:6] %}
+                  <span class="skill-pill skill-pill-sm">{{ kw }}</span>
+                {% endfor %}
+                {% if latest_prediction.top_keywords | length > 6 %}
+                  <span class="text-muted text-xs">+{{ (latest_prediction.top_keywords | length) - 6 }} more</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="latest-report-actions">
+          <a href="{{ url_for('main.report_detail', prediction_id=latest_prediction.id) }}" class="btn btn-primary btn-md">
+            View Full Report
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="card latest-report-card empty-latest-card">
+      <div class="empty-state">
+        <div class="empty-icon-box">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+        </div>
+        <h3>No Analysis Reports Yet</h3>
+        <p class="text-muted">Upload a resume in PDF or Word DOCX format to generate your first AI classification report.</p>
+        <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-sm">Analyze Your First Resume</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Dashboard Main Grid: Recent Activity & Domains -->
   <div class="dashboard-grid">
     <!-- Recent Activity -->
     <div class="card">
       <div class="card-header-flex">
         <div>
-          <h3 class="card-title">Recent Activity</h3>
-          <p class="card-subtitle text-muted text-sm">Resumes classified under your account profile.</p>
+          <h3 class="card-title">Recent Analysis History</h3>
+          <p class="card-subtitle text-muted text-sm">Recently classified resumes saved to your SQLite database.</p>
         </div>
-        <a href="{{ url_for('main.history') }}" class="btn btn-outline btn-xs">View Complete History &rarr;</a>
+        <a href="{{ url_for('main.history') }}" class="btn btn-outline btn-xs">Full History &rarr;</a>
       </div>
 
       {% if recent_predictions %}
@@ -70,55 +136,81 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Document Name</th>
+                <th>Document</th>
                 <th>Predicted Domain</th>
                 <th>Confidence</th>
                 <th>Processed</th>
+                <th>Report</th>
               </tr>
             </thead>
             <tbody>
               {% for pred in recent_predictions %}
                 <tr>
-                  <td><strong>{{ pred.original_filename }}</strong></td>
+                  <td>
+                    <div class="file-name-cell">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      <strong>{{ pred.original_filename }}</strong>
+                    </div>
+                  </td>
                   <td><span class="badge badge-primary">{{ pred.predicted_category }}</span></td>
-                  <td>{{ (pred.confidence * 100) | round(1) }}%</td>
-                  <td class="text-muted text-sm">{{ pred.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                  <td>{{ pred.confidence_percentage }}%</td>
+                  <td class="text-muted text-sm">{{ pred.created_at.strftime('%b %d, %Y') }}</td>
+                  <td>
+                    <a href="{{ url_for('main.report_detail', prediction_id=pred.id) }}" class="btn btn-outline btn-xs">
+                      View
+                    </a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       {% else %}
-        <div class="empty-state">
-          <div class="empty-icon-box">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          </div>
-          <h4>No Resumes Classified Yet</h4>
-          <p class="text-muted">Upload a resume in PDF or Word DOCX format to get started.</p>
-          <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-sm">Analyze Your First Resume</a>
+        <div class="empty-state-minimal">
+          <p class="text-muted text-sm">No analysis history yet. Click 'Analyze Resume' above to get started.</p>
         </div>
       {% endif %}
     </div>
 
-    <!-- Category Distribution Summary -->
-    <div class="card">
-      <h3 class="card-title">Top Predicted Domains</h3>
-      <p class="card-subtitle text-muted text-sm">Distribution of roles identified from your submissions:</p>
+    <!-- Category Distribution Summary & Quick Links -->
+    <div class="dashboard-side-column">
+      <div class="card">
+        <h3 class="card-title">Top Career Domains</h3>
+        <p class="card-subtitle text-muted text-sm">Distribution of roles identified from your submissions:</p>
 
-      {% if category_counts %}
-        <div class="category-summary-list">
-          {% for cat, count in category_counts %}
-            <div class="cat-summary-row">
-              <span class="cat-name">{{ cat }}</span>
-              <span class="cat-count badge badge-secondary">{{ count }} {% if count == 1 %}resume{% else %}resumes{% endif %}</span>
-            </div>
-          {% endfor %}
+        {% if category_counts %}
+          <div class="category-summary-list">
+            {% for cat, count in category_counts %}
+              <div class="cat-summary-row">
+                <span class="cat-name">{{ cat }}</span>
+                <span class="cat-count badge badge-secondary">{{ count }} {% if count == 1 %}resume{% else %}resumes{% endif %}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state-minimal">
+            <p class="text-muted text-sm">Category metrics will aggregate automatically as resumes are classified.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="card quick-links-card">
+        <h4 class="card-title text-sm">Workspace Navigation</h4>
+        <div class="quick-links-group">
+          <a href="{{ url_for('main.prediction') }}" class="quick-link-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Analyze Resume
+          </a>
+          <a href="{{ url_for('main.history') }}" class="quick-link-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            Audit History
+          </a>
+          <a href="{{ url_for('main.profile') }}" class="quick-link-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Account Profile
+          </a>
         </div>
-      {% else %}
-        <div class="empty-state-minimal">
-          <p class="text-muted text-sm">Category metrics will automatically aggregate as you analyze candidate resumes.</p>
-        </div>
-      {% endif %}
+      </div>
     </div>
   </div>
 </div>

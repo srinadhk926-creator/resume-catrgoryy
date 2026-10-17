@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Prediction History — ResumeAI{% endblock %}
+{% block title %}Candidate Analysis History — ResumeAI{% endblock %}
 
 {% block content %}
 <div class="container history-page-container">
   <div class="page-header-flex">
     <div>
       <h1 class="page-title">Candidate Analysis History</h1>
-      <p class="text-muted">A complete audit log of all candidate resumes classified under your account.</p>
+      <p class="text-muted">A complete audit log of all candidate resumes classified under your account and saved in SQLite.</p>
     </div>
-    <a href="{{ url_for('main.prediction') }}" class="btn btn-primary">+ Analyze New Resume</a>
+    <a href="{{ url_for('main.prediction') }}" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Analyze New Resume
+    </a>
   </div>
 
   <div class="card history-card">
@@ -18,41 +21,48 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Document Filename</th>
-              <th>Predicted Domain</th>
-              <th>Model Confidence</th>
-              <th>Timestamp (UTC)</th>
-              <th>Action</th>
+              <th scope="col" style="width: 70px;">ID</th>
+              <th scope="col">Document Filename</th>
+              <th scope="col">Predicted Domain</th>
+              <th scope="col">Model Confidence</th>
+              <th scope="col">Timestamp (UTC)</th>
+              <th scope="col" style="text-align: right; width: 170px;">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for pred in predictions %}
               <tr>
-                <td class="text-muted">#{{ pred.id }}</td>
+                <td class="text-muted font-mono">#{{ pred.id }}</td>
                 <td>
                   <div class="file-name-cell">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    <strong>{{ pred.original_filename }}</strong>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    <a href="{{ url_for('main.report_detail', prediction_id=pred.id) }}" class="table-filename-link">
+                      <strong>{{ pred.original_filename }}</strong>
+                    </a>
                   </div>
                 </td>
                 <td><span class="badge badge-primary">{{ pred.predicted_category }}</span></td>
                 <td>
                   <div class="table-confidence-bar">
                     <div class="progress-bar-container progress-bar-sm">
-                      <div class="progress-bar-fill" style="width: {{ (pred.confidence * 100) | round(1) }}%;"></div>
+                      <div class="progress-bar-fill" style="width: {{ pred.confidence_percentage }}%;"></div>
                     </div>
-                    <span>{{ (pred.confidence * 100) | round(1) }}%</span>
+                    <span class="confidence-text">{{ pred.confidence_percentage }}%</span>
                   </div>
                 </td>
                 <td class="text-muted text-sm">{{ pred.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>
-                  <form action="{{ url_for('main.delete_prediction', prediction_id=pred.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this prediction record from your history?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-danger btn-xs" aria-label="Delete prediction #{{ pred.id }}">
-                      Delete
-                    </button>
-                  </form>
+                <td style="text-align: right;">
+                  <div class="table-action-group">
+                    <a href="{{ url_for('main.report_detail', prediction_id=pred.id) }}" class="btn btn-outline btn-xs" aria-label="View report for #{{ pred.id }}">
+                      View Report
+                    </a>
+                    <form action="{{ url_for('main.delete_prediction', prediction_id=pred.id) }}" method="POST" class="inline-form" onsubmit="return confirm('Delete this analysis record from your history?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger btn-xs" aria-label="Delete prediction #{{ pred.id }}">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             {% endfor %}

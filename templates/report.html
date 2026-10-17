@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Report #{{ record_id }} — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="container report-page-container">
+  <!-- Report Top Navigation & Actions -->
+  <div class="report-nav-bar">
+    <div class="report-nav-left">
+      <a href="{{ url_for('main.history') }}" class="btn btn-outline btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to History
+      </a>
+      <span class="report-status-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Saved in SQLite
+      </span>
+    </div>
+    <div class="report-nav-right">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="window.print();" aria-label="Print report">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print Report
+      </button>
+      <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Analyze Another Resume
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Report Card Header -->
+  <div class="card report-hero-card">
+    <div class="report-header-flex">
+      <div>
+        <span class="report-id-badge">Analysis Audit Record #{{ record_id }}</span>
+        <h1 class="report-document-title">{{ filename }}</h1>
+        <p class="report-meta-line">
+          Evaluated on <strong>{{ prediction.created_at.strftime('%B %d, %Y at %H:%M:%S UTC') }}</strong> &bull; Character count: {{ result.text_length }}
+        </p>
+      </div>
+      <div class="report-category-box">
+        <span class="report-category-label">Predicted Resume Category</span>
+        <div class="report-category-name">{{ result.predicted_category }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-grid">
+    <!-- Left Column: Classification Evaluation & Signals -->
+    <div class="card result-card">
+      <div class="confidence-box">
+        <div class="confidence-header">
+          <span class="confidence-title">Model Posterior Confidence</span>
+          <strong class="confidence-val">{{ result.confidence_percentage }}%</strong>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" style="width: {{ result.confidence_percentage }}%;"></div>
+        </div>
+        <div class="confidence-disclaimer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span><strong>Objective Statistical Assessment:</strong> Confidence score represents posterior probability derived from TF-IDF feature weights under the trained Logistic Regression model. It indicates statistical relevance to the training corpus and is not an automated hiring recommendation.</span>
+        </div>
+      </div>
+
+      <!-- Skills and Keywords -->
+      <div class="keywords-section">
+        <h3 class="subsection-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Identified Skills & Key Domain Signals
+        </h3>
+        {% if result.top_keywords %}
+          <div class="pills-grid justify-start">
+            {% for kw in result.top_keywords %}
+              <span class="skill-pill">{{ kw }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-sm">No specific domain keyword signals isolated from the text.</p>
+        {% endif %}
+      </div>
+
+      <!-- Bounded Extracted Text Preview -->
+      <div class="text-preview-section">
+        <div class="section-title-with-badge">
+          <h3 class="subsection-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Bounded Text Preview
+          </h3>
+          <span class="badge badge-privacy">PII Redacted</span>
+        </div>
+        <div class="text-preview-box">
+          <code>{{ result.text_preview }}</code>
+        </div>
+        <p class="privacy-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <strong>Privacy Safeguard:</strong> Common phone numbers, email addresses, and street addresses are automatically masked. Full resume binaries are never persisted to disk.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Column: Full Probability Breakdown -->
+    <div class="card probabilities-card">
+      <div class="prob-header">
+        <h3 class="card-title">Category Distribution</h3>
+        <span class="prob-count-badge">{{ result.probabilities | length }} Categories</span>
+      </div>
+      <p class="card-text text-sm">Full probability distribution computed across all trained career domains:</p>
+
+      <div class="probabilities-list">
+        {% for item in result.probabilities %}
+          <div class="prob-row {% if item.category == result.predicted_category %}prob-row-selected{% endif %}">
+            <div class="prob-info">
+              <span class="prob-name">
+                {% if item.category == result.predicted_category %}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                {% endif %}
+                {{ item.category }}
+              </span>
+              <span class="prob-val">{{ item.percentage }}%</span>
+            </div>
+            <div class="progress-bar-container progress-bar-sm">
+              <div class="progress-bar-fill" style="width: {{ item.percentage }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="prob-action">
+        <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-block">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Analyze Another Resume
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

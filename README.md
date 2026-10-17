@@ -69,6 +69,7 @@ D:\MLOPS/
 │   ├── dashboard.html
 │   ├── upload.html
 │   ├── result.html
+│   ├── report.html
 │   ├── history.html
 │   ├── profile.html
 │   └── 404.html
@@ -216,6 +217,16 @@ curl -X POST http://127.0.0.1:5000/api/predict \
   "timestamp": "2026-10-18T00:00:00.000000Z"
 }
 ```
+
+---
+
+### 7.1 Persistent Analysis Reports & Automated SQLite Migration
+
+ResumeAI stores completed resume evaluations in SQLite to enable retrospective audits and report views:
+- **Stored Artifacts**: Record ID, User ID, original filename, predicted category, confidence score, full posterior category probabilities (`probabilities_json`), extracted technical skills (`top_keywords_json`), document character length, and bounded PII-redacted text preview.
+- **Dedicated Report Route**: `GET /reports/<int:prediction_id>` renders the persistent report with category ranking, confidence meter, skill badges, and printable view.
+- **Security & Authorization**: User isolation strictly blocks access to reports belonging to other accounts (HTTP 403 Forbidden).
+- **Automated Schema Upgrade**: When connecting to an existing SQLite database, `upgrade_schema()` automatically checks for and adds missing columns (`probabilities_json`, `top_keywords_json`, `text_length`) using `ALTER TABLE` queries without dropping tables or losing historic user data.
 
 ---
 

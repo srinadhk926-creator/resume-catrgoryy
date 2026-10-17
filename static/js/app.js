@@ -148,6 +148,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Form submit loading state
+  const loadingOverlay = document.getElementById("loading-overlay");
+
+  function resetUploadState() {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        <span>Analyze &amp; Classify Resume</span>
+      `;
+    }
+    if (loadingOverlay) {
+      loadingOverlay.style.display = "none";
+      loadingOverlay.setAttribute("aria-busy", "false");
+    }
+  }
+
+  // Handle browser back/forward restoration (bfcache)
+  window.addEventListener("pageshow", (event) => {
+    resetUploadState();
+    const loginBtn = document.getElementById("login-submit-btn");
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Sign In to Workspace";
+    }
+    const regBtn = document.getElementById("register-submit-btn");
+    if (regBtn) {
+      regBtn.disabled = false;
+      regBtn.textContent = "Create Free Account";
+    }
+  });
+
   if (uploadForm && submitBtn) {
     uploadForm.addEventListener("submit", (e) => {
       const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
@@ -159,8 +190,33 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Legitimate client-side submission: Activate loading overlay
       submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span>Analyzing Resume with ML Model... ⏳</span>`;
+      submitBtn.innerHTML = `<span>Processing Document...</span>`;
+
+      if (loadingOverlay) {
+        loadingOverlay.style.display = "flex";
+        loadingOverlay.setAttribute("aria-busy", "true");
+      }
+    });
+  }
+
+  // Auth forms submit loading states
+  const loginForm = document.getElementById("login-form");
+  const loginSubmitBtn = document.getElementById("login-submit-btn");
+  if (loginForm && loginSubmitBtn) {
+    loginForm.addEventListener("submit", () => {
+      loginSubmitBtn.disabled = true;
+      loginSubmitBtn.textContent = "Signing In...";
+    });
+  }
+
+  const registerForm = document.getElementById("register-form");
+  const registerSubmitBtn = document.getElementById("register-submit-btn");
+  if (registerForm && registerSubmitBtn) {
+    registerForm.addEventListener("submit", () => {
+      registerSubmitBtn.disabled = true;
+      registerSubmitBtn.textContent = "Creating Account...";
     });
   }
 });

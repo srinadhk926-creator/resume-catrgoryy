@@ -31,9 +31,10 @@ def test_prediction_authenticated_get(auth_client):
     assert response.status_code == 200
     assert b"Classify Candidate Resume" in response.data
     assert b"drop-zone" in response.data
+    assert b"loading-overlay" in response.data
 
 
-def test_prediction_post_pdf_authenticated(auth_client, sample_pdf_bytes):
+def test_prediction_post_pdf_authenticated(auth_client, app, sample_pdf_bytes):
     data = {
         "resume_file": (io.BytesIO(sample_pdf_bytes), "sample_resume.pdf"),
     }
@@ -42,6 +43,17 @@ def test_prediction_post_pdf_authenticated(auth_client, sample_pdf_bytes):
     assert b"Predicted Resume Category" in response.data
     assert b"sample_resume.pdf" in response.data
     assert b"DevOps Engineer" in response.data
+
+    # Verify report was stored with complete metadata
+    with app.app_context():
+        db = get_db()
+        pred = db.query(Prediction).filter_by(original_filename="sample_resume.pdf").first()
+        assert pred is not None
+        assert pred.user_id is not None
+        assert pred.probabilities_json is not None
+        assert len(pred.probabilities) > 0
+        assert pred.top_keywords_json is not None
+        assert pred.text_length is not None
 
 
 def test_prediction_post_docx_authenticated(auth_client, app, sample_docx_bytes):
@@ -61,7 +73,12 @@ def test_prediction_post_docx_authenticated(auth_client, app, sample_docx_bytes)
         assert pred.confidence > 0.0
 
 
-def test_prediction_post_empty_file(auth_client):
+def test_prediction_post_empty_file(auth_client, app):
+    # Verify failed request does not create a report record
+    initial_count = 0
+    with app.app_context():
+        initial_count = get_db().query(Prediction).count()
+
     data = {
         "resume_file": (io.BytesIO(b""), "empty.pdf"),
     }
@@ -69,8 +86,15 @@ def test_prediction_post_empty_file(auth_client):
     assert response.status_code == 400
     assert b"empty" in response.data.lower()
 
+    with app.app_context():
+        assert get_db().query(Prediction).count() == initial_count
 
-def test_prediction_post_invalid_extension(auth_client):
+
+def test_prediction_post_invalid_extension(auth_client, app):
+    initial_count = 0
+    with app.app_context():
+        initial_count = get_db().query(Prediction).count()
+
     data = {
         "resume_file": (io.BytesIO(b"Fake content"), "resume.txt"),
     }
@@ -78,8 +102,11 @@ def test_prediction_post_invalid_extension(auth_client):
     assert response.status_code == 400
     assert b"unsupported" in response.data.lower()
 
+    with app.app_context():
+        assert get_db().query(Prediction).count() == initial_count
 
-def test_dashboard_authenticated(auth_client, app):
+
+def test_dashboard_authenticated_with_report(auth_client, app):
     # Add a prediction for this user
     with app.app_context():
         db = get_db()
@@ -89,6 +116,9 @@ def test_dashboard_authenticated(auth_client, app):
             original_filename="my_resume.pdf",
             predicted_category="Data Science",
             confidence=0.88,
+            probabilities_json='[{"category": "Data Science", "probability": 0.88, "percentage": 88.0}]',
+            top_keywords_json='["Python", "Machine Learning"]',
+            text_length=450,
         )
         db.add(pred)
         db.commit()
@@ -96,8 +126,18 @@ def test_dashboard_authenticated(auth_client, app):
     response = auth_client.get("/dashboard")
     assert response.status_code == 200
     assert b"Welcome back, Test Candidate" in response.data
-    assert b"Total Resumes Analyzed" in response.data
+    assert b"Total Completed Analyses" in response.data
+    assert b"Latest Completed Analysis Report" in response.data
+    assert b"my_resume.pdf" in response.data
     assert b"Data Science" in response.data
+    assert b"View Full Report" in response.data
+
+
+def test_dashboard_empty_state(auth_client):
+    response = auth_client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"No Analysis Reports Yet" in response.data
+    assert b"Analyze Your First Resume" in response.data
 
 
 def test_history_page_and_delete(auth_client, app):
@@ -191,3 +231,105 @@ def test_landing_page_logged_in(auth_client):
     assert response.status_code == 200
     assert b"Dashboard" in response.data
     assert b"Sign Out" in response.data
+
+
+def test_report_detail_authenticated(auth_client, app):
+    with app.app_context():
+        db = get_db()
+        user = db.query(User).filter_by(email="candidate@test.com").first()
+        pred = Prediction(
+            user_id=user.id,
+            original_filename="audit_report.pdf",
+            predicted_category="DevOps Engineer",
+            confidence=0.94,
+            probabilities_json='[{"category": "DevOps Engineer", "probability": 0.94, "percentage": 94.0}]',
+            top_keywords_json='["Docker", "Kubernetes", "AWS"]',
+            text_length=620,
+            extracted_text_preview="Experienced DevOps engineer with Docker and Kubernetes skills.",
+        )
+        db.add(pred)
+        db.commit()
+        pred_id = pred.id
+
+    resp = auth_client.get(f"/reports/{pred_id}")
+    assert resp.status_code == 200
+    assert b"audit_report.pdf" in resp.data
+    assert b"DevOps Engineer" in resp.data
+    assert b"94.0%" in resp.data
+    assert b"Docker" in resp.data
+    assert b"Kubernetes" in resp.data
+    assert b"Back to History" in resp.data
+
+
+def test_report_detail_unauthenticated(client):
+    resp = client.get("/reports/1")
+    assert resp.status_code == 302
+    assert "/login" in resp.headers["Location"]
+    assert "next=" in resp.headers["Location"]
+
+
+def test_report_detail_unauthorized_user(client, app):
+    # User 1 owns report, User 2 tries to access
+    with app.app_context():
+        db = get_db()
+        user1 = User(name="User1", email="u1@test.com")
+        user1.set_password("pass123")
+        user2 = User(name="User2", email="u2@test.com")
+        user2.set_password("pass123")
+        db.add_all([user1, user2])
+        db.commit()
+
+        pred = Prediction(
+            user_id=user1.id,
+            original_filename="private_doc.pdf",
+            predicted_category="Security",
+            confidence=0.9,
+        )
+        db.add(pred)
+        db.commit()
+        pred_id = pred.id
+        u2_id = user2.id
+
+    # Log in as user 2
+    with client.session_transaction() as sess:
+        sess["user_id"] = u2_id
+        sess["user_name"] = "User2"
+
+    resp = client.get(f"/reports/{pred_id}")
+    assert resp.status_code == 403
+    data = resp.get_json()
+    assert "Forbidden" in data["error"]
+
+
+def test_report_survives_db_reload(app):
+    # Verify records in SQLite can be queried after session teardown
+    with app.app_context():
+        db = get_db()
+        user = User(name="PersistenceTester", email="persist@test.com")
+        user.set_password("pass1234")
+        db.add(user)
+        db.commit()
+
+        pred = Prediction(
+            user_id=user.id,
+            original_filename="persisted_record.pdf",
+            predicted_category="Java Developer",
+            confidence=0.92,
+            probabilities_json='[{"category": "Java Developer", "probability": 0.92, "percentage": 92.0}]',
+            top_keywords_json='["Java", "Spring Boot"]',
+            text_length=510,
+        )
+        db.add(pred)
+        db.commit()
+        pred_id = pred.id
+
+    # New context simulating a subsequent request / restart
+    with app.app_context():
+        db2 = get_db()
+        loaded_pred = db2.query(Prediction).filter_by(id=pred_id).first()
+        assert loaded_pred is not None
+        assert loaded_pred.original_filename == "persisted_record.pdf"
+        assert loaded_pred.predicted_category == "Java Developer"
+        assert loaded_pred.confidence == 0.92
+        assert loaded_pred.top_keywords == ["Java", "Spring Boot"]
+        assert loaded_pred.probabilities[0]["category"] == "Java Developer"

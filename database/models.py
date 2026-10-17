@@ -50,6 +50,9 @@ class User(Base):
         return f"<User {self.email}>"
 
 
+import json
+
+
 class Prediction(Base):
     """Record of a resume classification request."""
     __tablename__ = "predictions"
@@ -60,10 +63,46 @@ class Prediction(Base):
     predicted_category = Column(String(100), nullable=False, index=True)
     confidence = Column(Float, nullable=False)
     extracted_text_preview = Column(Text, nullable=True)
+    probabilities_json = Column(Text, nullable=True)
+    top_keywords_json = Column(Text, nullable=True)
+    text_length = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Back reference to User
     user = relationship("User", back_populates="predictions")
+
+    @property
+    def confidence_percentage(self) -> float:
+        """Returns confidence as a rounded percentage."""
+        return round(float(self.confidence) * 100, 1)
+
+    @property
+    def probabilities(self) -> list:
+        """Safely parses stored JSON probabilities or returns empty list."""
+        if not self.probabilities_json:
+            return [{
+                "category": self.predicted_category,
+                "probability": round(float(self.confidence), 4),
+                "percentage": self.confidence_percentage,
+            }]
+        try:
+            return json.loads(self.probabilities_json)
+        except Exception:
+            return [{
+                "category": self.predicted_category,
+                "probability": round(float(self.confidence), 4),
+                "percentage": self.confidence_percentage,
+            }]
+
+    @property
+    def top_keywords(self) -> list:
+        """Safely parses stored JSON keywords or returns empty list."""
+        if not self.top_keywords_json:
+            return []
+        try:
+            return json.loads(self.top_keywords_json)
+        except Exception:
+            return []
 
     def to_dict(self):
         return {
@@ -71,8 +110,11 @@ class Prediction(Base):
             "user_id": self.user_id,
             "original_filename": self.original_filename,
             "predicted_category": self.predicted_category,
-            "confidence": round(self.confidence, 4),
-            "confidence_percentage": round(self.confidence * 100, 1),
+            "confidence": round(float(self.confidence), 4),
+            "confidence_percentage": self.confidence_percentage,
+            "probabilities": self.probabilities,
+            "top_keywords": self.top_keywords,
+            "text_length": self.text_length or (len(self.extracted_text_preview) if self.extracted_text_preview else 0),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

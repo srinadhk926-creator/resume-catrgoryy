@@ -62,6 +62,28 @@ def get_engine(database_url: str = None):
     return _engine
 
 
+def upgrade_schema(engine):
+    """
+    Safely upgrades existing SQLite tables by adding missing columns without data loss.
+    Guarantees backward compatibility for existing user databases.
+    """
+    try:
+        import sqlalchemy as sa
+        insp = sa.inspect(engine)
+        if "predictions" in insp.get_table_names():
+            existing_columns = {c["name"] for c in insp.get_columns("predictions")}
+            with engine.begin() as conn:
+                if "probabilities_json" not in existing_columns:
+                    conn.execute(sa.text("ALTER TABLE predictions ADD COLUMN probabilities_json TEXT"))
+                if "top_keywords_json" not in existing_columns:
+                    conn.execute(sa.text("ALTER TABLE predictions ADD COLUMN top_keywords_json TEXT"))
+                if "text_length" not in existing_columns:
+                    conn.execute(sa.text("ALTER TABLE predictions ADD COLUMN text_length INTEGER"))
+    except Exception as err:
+        import logging
+        logging.getLogger("ResumeAI-DB").warning(f"Schema upgrade check notice: {err}")
+
+
 def init_db(database_url: str = None, create_tables: bool = True):
     """Initializes engine, sessionmaker, scoped session, and creates schema."""
     global _engine, _SessionFactory, db_session
@@ -72,6 +94,7 @@ def init_db(database_url: str = None, create_tables: bool = True):
     if create_tables:
         from database.models import User, Prediction  # Ensure models are imported
         Base.metadata.create_all(bind=_engine)
+        upgrade_schema(_engine)
 
     return db_session
 

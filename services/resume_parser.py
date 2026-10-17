@@ -191,3 +191,38 @@ def parse_resume_file(
         raise UnsupportedFileTypeError(f"Unsupported format: {extension}")
 
     return extracted_text, safe_name
+
+
+def redact_pii(text: str, max_chars: int = 500) -> str:
+    """
+    Safely bounds extracted resume text and masks common PII patterns
+    including emails, phone numbers, and street addresses.
+    """
+    if not text:
+        return ""
+    bounded = text[:max_chars].strip()
+
+    # Mask email addresses
+    bounded = re.sub(
+        r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
+        "[REDACTED EMAIL]",
+        bounded,
+    )
+    # Mask standard phone numbers (international and national patterns)
+    bounded = re.sub(
+        r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
+        "[REDACTED PHONE]",
+        bounded,
+    )
+    # Mask street addresses
+    bounded = re.sub(
+        r"\b\d{1,5}\s+[A-Za-z0-9\.\s]+(?:\bStreet|\bSt|\bAvenue|\bAve|\bRoad|\bRd|\bBoulevard|\bBlvd|\bDrive|\bDr|\bLane|\bLn|\bSuite|\bApt)\b",
+        "[REDACTED ADDRESS]",
+        bounded,
+        flags=re.IGNORECASE,
+    )
+
+    if len(text) > max_chars:
+        bounded += "..."
+
+    return bounded

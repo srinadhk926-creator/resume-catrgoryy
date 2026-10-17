@@ -5,6 +5,7 @@ Handles landing page, health check, resume upload, model prediction,
 user dashboard, and personal prediction history.
 """
 
+import json
 import logging
 from datetime import datetime
 from collections import Counter
@@ -132,6 +133,9 @@ def prediction():
                 predicted_category=prediction_result["predicted_category"],
                 confidence=prediction_result["confidence"],
                 extracted_text_preview=prediction_result["text_preview"],
+                probabilities_json=json.dumps(prediction_result.get("probabilities", [])),
+                top_keywords_json=json.dumps(prediction_result.get("top_keywords", [])),
+                text_length=prediction_result.get("text_length", len(extracted_text)),
             )
             db.add(pred_record)
             db.commit()
@@ -152,16 +156,17 @@ def prediction():
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
-    """Displays user dashboard with metrics and recent activity."""
+    """Displays user dashboard with metrics, latest report, and recent activity."""
     db = get_db()
     user_predictions = (
         db.query(Prediction)
         .filter_by(user_id=g.user.id)
-        .order_by(Prediction.created_at.desc())
+        .order_by(Prediction.created_at.desc(), Prediction.id.desc())
         .all()
     )
 
     total_predictions = len(user_predictions)
+    latest_prediction = user_predictions[0] if user_predictions else None
     recent_predictions = user_predictions[:5]
 
     # Calculate top predicted categories
@@ -171,6 +176,7 @@ def dashboard():
     return render_template(
         "dashboard.html",
         total_predictions=total_predictions,
+        latest_prediction=latest_prediction,
         recent_predictions=recent_predictions,
         category_counts=category_counts,
     )
@@ -184,10 +190,52 @@ def history():
     predictions = (
         db.query(Prediction)
         .filter_by(user_id=g.user.id)
-        .order_by(Prediction.created_at.desc())
+        .order_by(Prediction.created_at.desc(), Prediction.id.desc())
         .all()
     )
     return render_template("history.html", predictions=predictions)
+
+
+@main_bp.route("/reports/<int:prediction_id>")
+@login_required
+def report_detail(prediction_id: int):
+    """
+    Renders the persistent analysis report for a specific saved prediction.
+    Strictly verifies ownership to prevent unauthorized access.
+    """
+    db = get_db()
+    pred = db.query(Prediction).filter_by(id=prediction_id).first()
+
+    if pred is None:
+        flash("The requested analysis report was not found.", "warning")
+        return redirect(url_for("main.history"))
+
+    # Strict authorization: User can only view their own reports
+    if pred.user_id != g.user.id:
+        logger.warning(
+            f"Unauthorized report access attempt: User {g.user.id} tried to view report {prediction_id} belonging to user {pred.user_id}"
+        )
+        return jsonify({"error": "Forbidden. You cannot view another user's report."}), 403
+
+    # Reconstruct result object from stored database record
+    result = {
+        "predicted_category": pred.predicted_category,
+        "confidence": pred.confidence,
+        "confidence_percentage": pred.confidence_percentage,
+        "probabilities": pred.probabilities,
+        "top_keywords": pred.top_keywords,
+        "text_length": pred.text_length or (len(pred.extracted_text_preview) if pred.extracted_text_preview else 0),
+        "text_preview": pred.extracted_text_preview or "",
+        "timestamp": pred.created_at.isoformat() + "Z",
+    }
+
+    return render_template(
+        "report.html",
+        result=result,
+        prediction=pred,
+        filename=pred.original_filename,
+        record_id=pred.id,
+    )
 
 
 @main_bp.route("/history/delete/<int:prediction_id>", methods=["POST"])

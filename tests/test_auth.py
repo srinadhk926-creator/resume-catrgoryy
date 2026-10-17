@@ -141,7 +141,7 @@ def test_logout(client):
 
 
 def test_protected_routes_require_login(client):
-    for route in ["/dashboard", "/history", "/prediction", "/profile"]:
+    for route in ["/dashboard", "/history", "/prediction", "/profile", "/reports/1"]:
         resp = client.get(route)
         assert resp.status_code == 302
         assert "/login" in resp.headers["Location"]

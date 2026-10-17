@@ -1,25 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Resume — ResumeAI{% endblock %}
+{% block title %}Classify Resume — ResumeAI{% endblock %}
 
 {% block content %}
 <div class="container upload-page-container">
-  <div class="card upload-card">
+  <div class="card upload-card" id="upload-card">
     <div class="upload-header">
-      <div class="upload-icon">📤</div>
+      <div class="upload-icon-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      </div>
       <h2 class="card-title">Classify Candidate Resume</h2>
       <p class="card-text">
-        Analyze resumes in <strong>PDF (.pdf)</strong> or <strong>Word (.docx)</strong> format, or paste extracted resume text directly.
+        Analyze resumes in <strong>PDF (.pdf)</strong> or <strong>Word (.docx)</strong> format, or paste extracted resume text directly for TF-IDF career domain classification.
       </p>
     </div>
 
     <!-- Mode Selector Tabs -->
-    <div class="upload-tabs" role="tablist">
+    <div class="upload-tabs" role="tablist" aria-label="Upload method selection">
       <button type="button" class="tab-btn active" id="tab-file" role="tab" aria-selected="true" aria-controls="panel-file">
-        📄 Document Upload (PDF / DOCX)
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+        Document Upload (PDF / DOCX)
       </button>
       <button type="button" class="tab-btn" id="tab-text" role="tab" aria-selected="false" aria-controls="panel-text">
-        ✍️ Paste Resume Text
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        Paste Resume Text
       </button>
     </div>
 
@@ -31,13 +35,17 @@
       <div class="tab-panel active" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
         <div class="drop-zone" id="drop-zone">
           <div class="drop-zone-prompt">
-            <span class="drop-icon">📁</span>
+            <span class="drop-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </span>
             <p class="drop-text">Drag and drop your resume here, or <span class="browse-link">browse file</span></p>
-            <span class="drop-hint">Supports PDF and DOCX documents (Maximum 5 MB)</span>
+            <span class="drop-hint">Supports PDF (.pdf) and Word (.docx) documents (Maximum 5 MB)</span>
           </div>
           <input type="file" name="resume_file" id="resume-file" class="file-input" accept=".pdf,.docx" aria-label="Select resume document">
           <div class="file-preview" id="file-preview" style="display: none;">
-            <span class="preview-icon">📄</span>
+            <span class="preview-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </span>
             <span class="preview-name" id="preview-name"></span>
             <button type="button" class="preview-remove" id="preview-remove" aria-label="Remove selected file">&times;</button>
           </div>
@@ -55,13 +63,42 @@
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
-          <span>⚡ Analyze & Classify Resume</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          <span>Analyze &amp; Classify Resume</span>
         </button>
       </div>
     </form>
 
     <div class="upload-footer-notice">
-      <p>💡 <em>Note: Uploaded documents are processed in memory and never stored permanently on disk. Predictions are linked to your profile if signed in.</em></p>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      <p><em>Privacy Architecture: Uploaded documents are parsed in-memory and never permanently stored on disk. Completed analysis reports are securely linked to your account in SQLite.</em></p>
+    </div>
+  </div>
+
+  <!-- Real Analysis Processing Overlay -->
+  <div class="analysis-loading-overlay" id="loading-overlay" style="display: none;" role="status" aria-live="polite">
+    <div class="loading-modal-card">
+      <div class="loading-animation-container">
+        <div class="loading-scanner-frame">
+          <svg class="loading-doc-svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <line class="scan-beam-anim" x1="6" y1="10" x2="18" y2="10"></line>
+          </svg>
+          <div class="loading-spinner-ring"></div>
+        </div>
+      </div>
+      <h3 class="loading-headline">Analyzing your resume...</h3>
+      <p class="loading-subtext">Extracting document text and evaluating career-category signals with the scikit-learn classifier.</p>
+      <div class="loading-progress-track">
+        <div class="loading-progress-pulse"></div>
+      </div>
+      <div class="loading-badge-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        Synchronous inference in progress. Please keep this tab open.
+      </div>
     </div>
   </div>
 </div>

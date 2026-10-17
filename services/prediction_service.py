@@ -15,6 +15,8 @@ from typing import Dict, Any, List, Optional
 import numpy as np
 import joblib
 
+from services.resume_parser import redact_pii
+
 logger = logging.getLogger("ResumeAI-PredictionService")
 
 DEFAULT_MODEL_PATH = os.getenv(
@@ -202,7 +204,7 @@ class PredictionService:
             "probabilities": probabilities_list,
             "top_keywords": keywords,
             "text_length": len(cleaned_text),
-            "text_preview": cleaned_text[:300] + ("..." if len(cleaned_text) > 300 else ""),
+            "text_preview": redact_pii(cleaned_text, max_chars=400),
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
 
