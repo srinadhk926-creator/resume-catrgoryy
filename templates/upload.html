@@ -9,32 +9,53 @@
       <div class="upload-icon">📤</div>
       <h2 class="card-title">Classify Candidate Resume</h2>
       <p class="card-text">
-        Upload a resume in <strong>PDF (.pdf)</strong> or <strong>Word (.docx)</strong> format.
-        Our machine learning pipeline will extract features, classify the category, and display confidence probabilities.
+        Analyze resumes in <strong>PDF (.pdf)</strong> or <strong>Word (.docx)</strong> format, or paste extracted resume text directly.
       </p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="upload-tabs" role="tablist">
+      <button type="button" class="tab-btn active" id="tab-file" role="tab" aria-selected="true" aria-controls="panel-file">
+        📄 Document Upload (PDF / DOCX)
+      </button>
+      <button type="button" class="tab-btn" id="tab-text" role="tab" aria-selected="false" aria-controls="panel-text">
+        ✍️ Paste Resume Text
+      </button>
     </div>
 
     <!-- Resume Upload Form -->
     <form action="{{ url_for('main.prediction') }}" method="POST" enctype="multipart/form-data" class="upload-form" id="upload-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <div class="drop-zone" id="drop-zone">
-        <div class="drop-zone-prompt">
-          <span class="drop-icon">📁</span>
-          <p class="drop-text">Drag and drop your resume here, or <span class="browse-link">browse file</span></p>
-          <span class="drop-hint">Supports PDF and DOCX (Max 5 MB)</span>
+      <!-- Tab 1: File Upload Panel -->
+      <div class="tab-panel active" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone-prompt">
+            <span class="drop-icon">📁</span>
+            <p class="drop-text">Drag and drop your resume here, or <span class="browse-link">browse file</span></p>
+            <span class="drop-hint">Supports PDF and DOCX documents (Maximum 5 MB)</span>
+          </div>
+          <input type="file" name="resume_file" id="resume-file" class="file-input" accept=".pdf,.docx" aria-label="Select resume document">
+          <div class="file-preview" id="file-preview" style="display: none;">
+            <span class="preview-icon">📄</span>
+            <span class="preview-name" id="preview-name"></span>
+            <button type="button" class="preview-remove" id="preview-remove" aria-label="Remove selected file">&times;</button>
+          </div>
         </div>
-        <input type="file" name="resume_file" id="resume-file" class="file-input" accept=".pdf,.docx" required>
-        <div class="file-preview" id="file-preview" style="display: none;">
-          <span class="preview-icon">📄</span>
-          <span class="preview-name" id="preview-name"></span>
-          <button type="button" class="preview-remove" id="preview-remove">&times;</button>
+      </div>
+
+      <!-- Tab 2: Direct Text Paste Panel -->
+      <div class="tab-panel" id="panel-text" role="tabpanel" aria-labelledby="tab-text" style="display: none;">
+        <div class="form-group">
+          <label for="resume-text" class="form-label">Paste Raw Resume Text</label>
+          <textarea name="resume_text" id="resume-text" class="form-control text-area-input" rows="8" placeholder="Paste candidate resume content here (skills, work experience, education, technical proficiencies)..."></textarea>
+          <span class="form-hint">Minimum 20 characters required for classification.</span>
         </div>
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
-          <span>Analyze & Classify Resume</span>
+          <span>⚡ Analyze & Classify Resume</span>
         </button>
       </div>
     </form>

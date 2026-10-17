@@ -73,36 +73,37 @@ def prediction():
     if request.method == "GET":
         return render_template("upload.html")
 
-    # POST method: Handle resume upload
-    if "resume_file" not in request.files and "file" not in request.files:
-        flash("No file was uploaded. Please select a PDF or DOCX resume.", "danger")
-        return render_template("upload.html"), 400
-
+    # POST method: Handle resume upload or direct text input
     uploaded_file = request.files.get("resume_file") or request.files.get("file")
+    raw_text = request.form.get("resume_text", "").strip()
 
-    if not uploaded_file or uploaded_file.filename.strip() == "":
-        flash("No file was selected. Please choose a file to upload.", "danger")
+    if (not uploaded_file or uploaded_file.filename.strip() == "") and not raw_text:
+        flash("Please upload a PDF/DOCX resume file or enter resume text.", "danger")
         return render_template("upload.html"), 400
 
     max_size = current_app.config.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024)
 
-    # 1. Parse text from uploaded resume
-    try:
-        extracted_text, safe_filename = parse_resume_file(
-            file_stream_or_bytes=uploaded_file.stream,
-            filename=uploaded_file.filename,
-            max_file_size=max_size,
-        )
-    except FileTooLargeError as err:
-        flash(str(err), "danger")
-        return render_template("upload.html"), 413
-    except (UnsupportedFileTypeError, EmptyFileError, CorruptedFileError, ResumeParserError) as err:
-        flash(str(err), "danger")
-        return render_template("upload.html"), 400
-    except Exception as err:
-        logger.error(f"Unexpected file parsing error: {err}")
-        flash("Failed to process the uploaded file. Please ensure it is a valid PDF or Word document.", "danger")
-        return render_template("upload.html"), 500
+    # 1. Obtain extracted text
+    if uploaded_file and uploaded_file.filename.strip() != "":
+        try:
+            extracted_text, safe_filename = parse_resume_file(
+                file_stream_or_bytes=uploaded_file.stream,
+                filename=uploaded_file.filename,
+                max_file_size=max_size,
+            )
+        except FileTooLargeError as err:
+            flash(str(err), "danger")
+            return render_template("upload.html"), 413
+        except (UnsupportedFileTypeError, EmptyFileError, CorruptedFileError, ResumeParserError) as err:
+            flash(str(err), "danger")
+            return render_template("upload.html"), 400
+        except Exception as err:
+            logger.error(f"Unexpected file parsing error: {err}")
+            flash("Failed to process the uploaded file. Please ensure it is a valid PDF or Word document.", "danger")
+            return render_template("upload.html"), 500
+    else:
+        extracted_text = raw_text
+        safe_filename = "direct_text_input"
 
     # 2. Run model inference
     prediction_service = get_prediction_service(current_app.config.get("MODEL_PATH"))
