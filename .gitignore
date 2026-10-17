@@ -1,0 +1,48 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables & secrets
+.env
+*.pem
+*.key
+*.cer
+*.crt
+
+# SQLite & local database
+instance/
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary upload storage
+uploads/
+temp/
+*.tmp
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Large external dataset files (keep sample_resumes.csv tracked for tests)
+data/UpdatedResumeDataSet.csv
+data/*.pdf
+data/*.docx
+
+# Model cache & checkpoints
+model/*.pkl
+model/*.joblib
+!model/.gitkeep

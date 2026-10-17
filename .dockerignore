@@ -1,0 +1,40 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Git metadata
+.git/
+.gitignore
+
+# Cache and bytecode
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Sensitive data and environment files
+.env
+*.pem
+*.key
+*.cer
+
+# Local SQLite databases
+instance/
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary and upload directories
+uploads/
+temp/
+
+# Large local datasets
+data/UpdatedResumeDataSet.csv
+data/*.pdf
+data/*.docx
+
+# IDE files
+.vscode/
+.idea/
