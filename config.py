@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
+INSTANCE_DIR = BASE_DIR / "instance"
+INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
 
 class Config:
     """Base application configuration."""
@@ -11,19 +13,19 @@ class Config:
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", 
-        f"sqlite:///{BASE_DIR / 'instance' / 'resume_ai.db'}"
+        f"sqlite:///{(INSTANCE_DIR / 'resume_ai.db').as_posix()}"
     )
     
     # Model Artifact
     MODEL_PATH = os.getenv(
         "MODEL_PATH", 
-        str(BASE_DIR / "model" / "resume_classifier.joblib")
+        str((BASE_DIR / "model" / "resume_classifier.joblib").as_posix())
     )
     
     # Upload limits (5MB default)
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))
     ALLOWED_EXTENSIONS = {"pdf", "docx"}
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str((BASE_DIR / "uploads").as_posix()))
     
     # Security & session flags
     SESSION_COOKIE_HTTPONLY = True
@@ -42,8 +44,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
-    # Path to test model artifact if created during testing
-    MODEL_PATH = str(BASE_DIR / "model" / "test_model.joblib")
+    MODEL_PATH = str((BASE_DIR / "model" / "resume_classifier.joblib").as_posix())
 
 
 class ProductionConfig(Config):

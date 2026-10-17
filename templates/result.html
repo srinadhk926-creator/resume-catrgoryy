@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Classification Results — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="container result-page-container">
+  <div class="result-header">
+    <a href="{{ url_for('main.prediction') }}" class="btn btn-outline btn-sm">&larr; Analyze Another Resume</a>
+    {% if saved_to_history %}
+      <span class="badge badge-success">✓ Saved to Your History</span>
+    {% else %}
+      <span class="badge badge-info"><a href="{{ url_for('auth.login') }}">Sign In</a> to save predictions to your history</span>
+    {% endif %}
+  </div>
+
+  <div class="result-grid">
+    <!-- Main Result Card -->
+    <div class="card result-card">
+      <div class="result-badge-label">Predicted Resume Category</div>
+      <h1 class="predicted-category">{{ result.predicted_category }}</h1>
+
+      <div class="confidence-box">
+        <div class="confidence-header">
+          <span>Model Confidence Score:</span>
+          <strong>{{ result.confidence_percentage }}%</strong>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" style="width: {{ result.confidence_percentage }}%;"></div>
+        </div>
+        <p class="confidence-disclaimer">
+          ⚠️ <em>Disclaimer: Model confidence score represents the statistical posterior probability from TF-IDF feature weights, not an infallible guarantee of fit.</em>
+        </p>
+      </div>
+
+      <!-- File Metadata -->
+      <div class="metadata-row">
+        <div class="meta-item">
+          <span class="meta-label">Analyzed File:</span>
+          <span class="meta-value">{{ filename }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Characters Processed:</span>
+          <span class="meta-value">{{ result.text_length }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Analysis Timestamp:</span>
+          <span class="meta-value">{{ result.timestamp[:19] }} UTC</span>
+        </div>
+      </div>
+
+      <!-- Extracted Skills & Keywords -->
+      <div class="keywords-section">
+        <h3 class="subsection-title">Identified Skills & Key Terms</h3>
+        {% if result.top_keywords %}
+          <div class="pills-grid">
+            {% for kw in result.top_keywords %}
+              <span class="skill-pill">{{ kw }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">No specific technical keywords detected in the extracted text.</p>
+        {% endif %}
+      </div>
+
+      <!-- Extracted Text Preview -->
+      <div class="text-preview-section">
+        <h3 class="subsection-title">Extracted Text Preview</h3>
+        <div class="text-preview-box">
+          <code>{{ result.text_preview }}</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Probability Breakdown Card -->
+    <div class="card probabilities-card">
+      <h3 class="card-title">Category Probabilities Breakdown</h3>
+      <p class="card-text text-sm">Full probability distribution computed across all trained job domains:</p>
+
+      <div class="probabilities-list">
+        {% for item in result.probabilities %}
+          <div class="prob-row {% if item.category == result.predicted_category %}prob-row-selected{% endif %}">
+            <div class="prob-info">
+              <span class="prob-name">{{ item.category }}</span>
+              <span class="prob-val">{{ item.percentage }}%</span>
+            </div>
+            <div class="progress-bar-container progress-bar-sm">
+              <div class="progress-bar-fill" style="width: {{ item.percentage }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="prob-action">
+        <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-block">Classify Another Resume</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

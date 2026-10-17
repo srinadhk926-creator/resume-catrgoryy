@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <!-- Welcome Banner -->
+  <div class="dashboard-banner">
+    <div class="banner-text">
+      <h2>Welcome back, {{ current_user.name }}!</h2>
+      <p class="text-muted">Here is an overview of your resume classification activity.</p>
+    </div>
+    <div class="banner-action">
+      <a href="{{ url_for('main.prediction') }}" class="btn btn-primary">+ Upload New Resume</a>
+    </div>
+  </div>
+
+  <!-- Metric Summary Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon">📄</span>
+      <div class="stat-content">
+        <span class="stat-number">{{ total_predictions }}</span>
+        <span class="stat-label">Total Resumes Analyzed</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-icon">🏆</span>
+      <div class="stat-content">
+        <span class="stat-number">
+          {% if category_counts %}{{ category_counts[0][0] }}{% else %}N/A{% endif %}
+        </span>
+        <span class="stat-label">Top Category Predicted</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-icon">⚡</span>
+      <div class="stat-content">
+        <span class="stat-number text-success">Active</span>
+        <span class="stat-label">ML Pipeline Status</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Main Grid -->
+  <div class="dashboard-grid">
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header-flex">
+        <h3 class="card-title">Recent Activity</h3>
+        <a href="{{ url_for('main.history') }}" class="btn btn-outline btn-xs">View All &rarr;</a>
+      </div>
+
+      {% if recent_predictions %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Predicted Category</th>
+              <th>Confidence</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in recent_predictions %}
+              <tr>
+                <td><strong>{{ pred.original_filename }}</strong></td>
+                <td><span class="badge badge-primary">{{ pred.predicted_category }}</span></td>
+                <td>{{ (pred.confidence * 100) | round(1) }}%</td>
+                <td class="text-muted text-sm">{{ pred.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <p>No resumes classified yet.</p>
+          <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-sm">Upload Your First Resume</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Category Distribution Summary -->
+    <div class="card">
+      <h3 class="card-title">Your Top Predicted Roles</h3>
+      {% if category_counts %}
+        <div class="category-summary-list">
+          {% for cat, count in category_counts %}
+            <div class="cat-summary-row">
+              <span class="cat-name">{{ cat }}</span>
+              <span class="cat-count badge badge-secondary">{{ count }} {% if count == 1 %}resume{% else %}resumes{% endif %}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-sm">Classifications will appear here once you upload candidate resumes.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

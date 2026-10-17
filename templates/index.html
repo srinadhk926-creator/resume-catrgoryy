@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}ResumeAI — Automated Resume Category Classification{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-badge">🚀 College Practicals 1–4 • 2CEAI702 MLOps</div>
+    <h1 class="hero-title">Intelligent Resume Category Classification</h1>
+    <p class="hero-subtitle">
+      Automate talent parsing with machine learning. Upload resumes in PDF or DOCX format, extract clean textual features, and instantly classify job candidates into industry categories using TF-IDF and Logistic Regression.
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-lg">Upload Resume</a>
+      {% if not current_user %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg">Create Free Account</a>
+      {% else %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-lg">Open Dashboard</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- MLOps Practicals Architecture Cards -->
+  <section class="section">
+    <h2 class="section-title">End-to-End MLOps System Pipeline</h2>
+    <p class="section-desc">Structured according to the four laboratory practicals of 2CEAI702.</p>
+    
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🧪</div>
+        <h3 class="card-title">Practical 1: Flask ML System</h3>
+        <p class="card-text">
+          Modular Flask application with scikit-learn Pipeline serialization (TF-IDF + Logistic Regression), input validation, SQLAlchemy persistence, and unit tests.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🐳</div>
+        <h3 class="card-title">Practical 2: Docker Container</h3>
+        <p class="card-text">
+          Containerized with multi-stage Python 3.11-slim base image, non-root user permissions, Gunicorn WSGI server on port 5000, and isolated environments.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <h3 class="card-title">Practical 3: AWS EC2 Cloud</h3>
+        <p class="card-text">
+          Deployed on an Ubuntu EC2 instance with custom Security Groups (SSH Port 22 and TCP Port 5000), systemd Docker service, and remote verification.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3 class="card-title">Practical 4: Google Cloud Platform</h3>
+        <p class="card-text">
+          Provisioned on Google Compute Engine VM, protected with VPC ingress firewall rules (<code>allow-ml-app-5000</code>), and containerized restart policies.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Resume Categories -->
+  <section class="section">
+    <h2 class="section-title">Recognized Resume Categories</h2>
+    <p class="section-desc">Trained across major software engineering, data science, and IT roles.</p>
+    
+    <div class="pills-grid">
+      <span class="category-pill">📊 Data Science</span>
+      <span class="category-pill">🐍 Python Developer</span>
+      <span class="category-pill">☕ Java Developer</span>
+      <span class="category-pill">☸️ DevOps Engineer</span>
+      <span class="category-pill">🎨 Web Designing</span>
+      <span class="category-pill">💻 Software Engineer</span>
+      <span class="category-pill">👥 Human Resources (HR)</span>
+      <span class="category-pill">📈 Business Analyst</span>
+      <span class="category-pill">🗄️ Database Administrator</span>
+      <span class="category-pill">🛡️ Network Security Engineer</span>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="section how-it-works">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-row">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <h4>Upload Document</h4>
+        <p>Upload any standard PDF or Word DOCX resume up to 5 MB.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <h4>Extract & Preprocess</h4>
+        <p>PyMuPDF or python-docx safely parses textual content into tokens.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <h4>ML Inference</h4>
+        <p>TF-IDF extracts features and the classifier predicts the optimal domain.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <h4>Actionable Insights</h4>
+        <p>View domain probabilities, confidence score, and matched skills.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

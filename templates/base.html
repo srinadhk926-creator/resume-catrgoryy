@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ResumeAI — Resume Category Classifier{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('main.index') }}" class="brand-logo">
+        <span class="logo-icon">📄</span>
+        <span class="logo-text">Resume<strong class="highlight">AI</strong></span>
+      </a>
+      <nav class="nav-links">
+        <a href="{{ url_for('main.index') }}" class="nav-item">Home</a>
+        <a href="{{ url_for('main.prediction') }}" class="nav-item">Classify Resume</a>
+        {% if current_user %}
+          <a href="{{ url_for('main.dashboard') }}" class="nav-item">Dashboard</a>
+          <a href="{{ url_for('main.history') }}" class="nav-item">History</a>
+          <div class="user-menu">
+            <span class="user-greeting">👋 {{ current_user.name }}</span>
+            <form action="{{ url_for('auth.logout') }}" method="POST" class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline btn-sm">Sign Out</button>
+            </form>
+          </div>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="nav-item">Sign In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- Flash Messages Banner -->
+  <div class="container message-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span>{{ message }}</span>
+            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 <strong>ResumeAI</strong> — Full-Stack MLOps Classification System (2CEAI702).</p>
+      <p class="footer-links">
+        <a href="{{ url_for('main.health') }}" target="_blank">System Health JSON</a>
+        <span>•</span>
+        <span>Python 3.10 / 3.11 • scikit-learn • Flask • Docker</span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

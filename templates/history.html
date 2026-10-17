@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="container history-page-container">
+  <div class="page-header-flex">
+    <div>
+      <h1 class="page-title">Personal Prediction History</h1>
+      <p class="text-muted">A complete audit log of all resumes analyzed under your account.</p>
+    </div>
+    <a href="{{ url_for('main.prediction') }}" class="btn btn-primary">+ Analyze New Resume</a>
+  </div>
+
+  <div class="card">
+    {% if predictions %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Resume Filename</th>
+              <th>Predicted Category</th>
+              <th>Confidence</th>
+              <th>Date & Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in predictions %}
+              <tr>
+                <td class="text-muted">#{{ pred.id }}</td>
+                <td><strong>{{ pred.original_filename }}</strong></td>
+                <td><span class="badge badge-primary">{{ pred.predicted_category }}</span></td>
+                <td>
+                  <div class="table-confidence">
+                    <span>{{ (pred.confidence * 100) | round(1) }}%</span>
+                  </div>
+                </td>
+                <td class="text-muted text-sm">{{ pred.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                  <form action="{{ url_for('main.delete_prediction', prediction_id=pred.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this prediction record?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon">📁</span>
+        <h3>No History Records Found</h3>
+        <p class="text-muted">You haven't classified any resumes yet. Get started by uploading a resume.</p>
+        <a href="{{ url_for('main.prediction') }}" class="btn btn-primary btn-sm">Upload Resume Now</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

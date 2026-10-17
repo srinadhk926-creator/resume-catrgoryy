@@ -143,18 +143,89 @@ print("Probabilities:", result["probabilities"][:3])
 ## 6. Running the Web Application Locally
 
 ```powershell
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+# Start the Flask application
 python app.py
 ```
-- Open browser at: `http://127.0.0.1:5000`
-- Check system health: `http://127.0.0.1:5000/health`
+- Web Application: `http://127.0.0.1:5000`
+- System Health Check: `http://127.0.0.1:5000/health`
+- Resume Upload Interface: `http://127.0.0.1:5000/prediction`
+- User Registration: `http://127.0.0.1:5000/register`
+- User Sign In: `http://127.0.0.1:5000/login`
 
 ---
 
-## 7. Running Automated Tests
+## 7. REST API Reference
+
+The application provides a public REST API for programmatic predictions without CSRF friction.
+
+### Health Check Endpoint
+- **URL**: `GET /health`
+- **Response**: `200 OK` (or `503 Service Unavailable` if model artifact is missing)
+```json
+{
+  "status": "ok",
+  "service": "resume-category-classifier",
+  "model_loaded": true,
+  "timestamp": "2026-10-18T00:00:00.000000Z"
+}
+```
+
+### Prediction Endpoint
+- **URL**: `POST /api/predict`
+- **Content-Type**: `multipart/form-data` OR `application/json`
+
+#### Option A: Multipart File Upload (PDF or DOCX)
+```bash
+curl -X POST http://127.0.0.1:5000/api/predict \
+  -F "file=@/path/to/candidate_resume.pdf"
+```
+
+#### Option B: JSON Text Payload
+```bash
+curl -X POST http://127.0.0.1:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Senior DevOps Engineer with 6 years experience in Kubernetes, Docker, Terraform, AWS EC2, Jenkins, and Linux."}'
+```
+
+#### Successful JSON Response (`200 OK`)
+```json
+{
+  "status": "success",
+  "filename": "candidate_resume.pdf",
+  "predicted_category": "DevOps Engineer",
+  "confidence": 0.885,
+  "confidence_percentage": 88.5,
+  "top_keywords": [
+    "Kubernetes",
+    "Docker",
+    "Terraform",
+    "Aws",
+    "Linux",
+    "Jenkins"
+  ],
+  "probabilities": [
+    {"category": "DevOps Engineer", "probability": 0.885, "percentage": 88.5},
+    {"category": "Python Developer", "probability": 0.052, "percentage": 5.2},
+    {"category": "Java Developer", "probability": 0.031, "percentage": 3.1}
+  ],
+  "text_length": 1420,
+  "timestamp": "2026-10-18T00:00:00.000000Z"
+}
+```
+
+---
+
+## 8. Running Automated Tests
+
+Run the complete test suite (unit tests, API integration tests, parser tests, and auth tests):
 
 ```powershell
 pytest -v
 ```
+All tests use temporary SQLite databases and generated in-memory PDF/DOCX documents.
 
 ---
 

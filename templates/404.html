@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ error_code or 404 }} — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="container error-container">
+  <div class="card error-card">
+    <div class="error-code">{{ error_code or 404 }}</div>
+    <h2 class="card-title">{{ error_message or "Page Not Found" }}</h2>
+    <p class="card-text">
+      The requested page or resource could not be processed.
+    </p>
+    <div class="error-actions">
+      <a href="{{ url_for('main.index') }}" class="btn btn-primary">&larr; Return to Home</a>
+      <a href="{{ url_for('main.prediction') }}" class="btn btn-outline">Classify a Resume</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
