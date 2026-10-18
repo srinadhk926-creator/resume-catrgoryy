@@ -104,6 +104,29 @@ class Prediction(Base):
         except Exception:
             return []
 
+    @property
+    def margin(self) -> float:
+        """Calculates margin between 1st and 2nd category probabilities."""
+        probs = self.probabilities
+        if len(probs) >= 2:
+            return round(float(probs[0].get("probability", 0.0) - probs[1].get("probability", 0.0)), 4)
+        return round(float(self.confidence), 4)
+
+    @property
+    def is_low_confidence(self) -> bool:
+        """Flags whether the prediction has low confidence or narrow runner-up margin."""
+        return bool(self.confidence < 0.22 or self.margin < 0.04)
+
+    @property
+    def confidence_warning(self) -> str | None:
+        """Human-readable ambiguity warning when confidence is low."""
+        if self.is_low_confidence:
+            return (
+                "Low confidence prediction. This resume contains multi-disciplinary skills across "
+                "multiple domains or limited domain-specific keywords. Review alternative category probabilities."
+            )
+        return None
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -112,6 +135,9 @@ class Prediction(Base):
             "predicted_category": self.predicted_category,
             "confidence": round(float(self.confidence), 4),
             "confidence_percentage": self.confidence_percentage,
+            "margin": self.margin,
+            "is_low_confidence": self.is_low_confidence,
+            "confidence_warning": self.confidence_warning,
             "probabilities": self.probabilities,
             "top_keywords": self.top_keywords,
             "text_length": self.text_length or (len(self.extracted_text_preview) if self.extracted_text_preview else 0),

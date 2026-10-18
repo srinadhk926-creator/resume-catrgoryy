@@ -1,0 +1,55 @@
+ResumeAI (D:\MLOPS)
+├── data/
+│   ├── README.md
+│   └── sample_resumes.csv
+├── database/
+│   ├── db.py
+│   └── models.py
+├── instance/
+│   └── resume_ai.db
+├── model/
+│   ├── evaluation_metrics.json
+│   └── resume_classifier.joblib
+├── routes/
+│   ├── api.py
+│   ├── auth.py
+│   └── main.py
+├── services/
+│   ├── prediction_service.py
+│   └── resume_parser.py
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── app.js
+├── templates/
+│   ├── 404.html
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── history.html
+│   ├── index.html
+│   ├── login.html
+│   ├── profile.html
+│   ├── register.html
+│   ├── report.html
+│   ├── result.html
+│   └── upload.html
+├── tests/
+│   ├── conftest.py
+│   ├── test_api.py
+│   ├── test_app.py
+│   ├── test_auth.py
+│   └── test_model.py
+├── .dockerignore
+├── .env.example
+├── .gitignore
+├── app.py
+├── config.py
+├── docker-compose.yml
+├── Dockerfile
+├── PRACTICAL_EVIDENCE.md
+├── pytest.ini
+├── README.md
+├── requirements.txt
+├── requirements-dev.txt
+└── train_model.py

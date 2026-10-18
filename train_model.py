@@ -23,7 +23,7 @@ import numpy as np
 import joblib
 
 from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
@@ -33,6 +33,7 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     classification_report,
+    confusion_matrix,
 )
 
 # Setup logging
@@ -42,6 +43,17 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("ResumeAI-Trainer")
+
+# General resume boilerplate stop words that appear across domains
+RESUME_STOP_WORDS = list(ENGLISH_STOP_WORDS.union({
+    "curriculum", "vitae", "resume", "contact", "phone", "email", "linkedin", "github",
+    "address", "city", "state", "university", "college", "school", "bachelor", "btech",
+    "degree", "gpa", "cgpa", "year", "years", "duration", "date", "present",
+    "experience", "work", "job", "project", "projects", "summary", "objective", "profile",
+    "skills", "technical", "personal", "details", "responsibilities", "responsible",
+    "developed", "implemented", "worked", "created", "built", "using", "used", "team",
+    "member", "members", "month", "months", "role", "title", "company", "organization"
+}))
 
 
 TEXT_COLUMN_CANDIDATES = ["Resume", "Resume_Text", "resume_text", "text", "resume", "ResumeText"]
@@ -116,15 +128,17 @@ def load_and_validate_data(dataset_path: str) -> pd.DataFrame:
 def build_pipeline(model_type: str = "logistic", random_seed: int = 42) -> Pipeline:
     """Builds a scikit-learn Pipeline with TF-IDF and specified classifier."""
     vectorizer = TfidfVectorizer(
-        max_features=5000,
+        max_features=8000,
         ngram_range=(1, 2),
         sublinear_tf=True,
-        stop_words="english",
+        stop_words=RESUME_STOP_WORDS,
+        max_df=0.85,
+        min_df=1,
     )
 
     if model_type == "logistic":
         classifier = LogisticRegression(
-            C=1.0,
+            C=3.0,
             max_iter=1000,
             random_state=random_seed,
             class_weight="balanced",
@@ -180,6 +194,7 @@ def split_data(
 def evaluate_pipeline(pipeline: Pipeline, X_test: pd.Series, y_test: pd.Series) -> Dict[str, Any]:
     """Calculates accuracy, precision, recall, F1-score, and classification report."""
     y_pred = pipeline.predict(X_test)
+    classes = getattr(pipeline, "classes_", sorted(list(y_test.unique())))
 
     acc = float(accuracy_score(y_test, y_pred))
     prec = float(precision_score(y_test, y_pred, average="weighted", zero_division=0))
@@ -187,6 +202,7 @@ def evaluate_pipeline(pipeline: Pipeline, X_test: pd.Series, y_test: pd.Series) 
     f1 = float(f1_score(y_test, y_pred, average="weighted", zero_division=0))
     report_dict = classification_report(y_test, y_pred, zero_division=0, output_dict=True)
     report_str = classification_report(y_test, y_pred, zero_division=0)
+    cm = confusion_matrix(y_test, y_pred, labels=classes).tolist()
 
     return {
         "accuracy": round(acc, 4),
@@ -195,6 +211,8 @@ def evaluate_pipeline(pipeline: Pipeline, X_test: pd.Series, y_test: pd.Series) 
         "f1_weighted": round(f1, 4),
         "classification_report": report_dict,
         "classification_report_text": report_str,
+        "confusion_matrix": cm,
+        "confusion_matrix_labels": list(classes),
     }
 
 
@@ -286,6 +304,8 @@ def train_and_evaluate(
             "f1_weighted": chosen_metrics["f1_weighted"],
         },
         "classification_report": chosen_metrics["classification_report"],
+        "confusion_matrix": chosen_metrics.get("confusion_matrix", []),
+        "confusion_matrix_labels": chosen_metrics.get("confusion_matrix_labels", classes),
         "comparison": {
             "logistic_regression": {
                 "accuracy": logistic_metrics["accuracy"],

@@ -246,3 +246,65 @@ def test_prediction_service_keyword_extraction(trained_test_model):
     text = "Proficient in Python, Docker, Kubernetes, AWS, SQL, and Machine Learning."
     keywords = service.extract_keywords(text)
     assert any(kw in ["Python", "Docker", "Kubernetes", "Aws", "Sql", "Machine Learning"] for kw in keywords)
+
+
+def test_distinct_domain_predictions_not_uniform_data_science():
+    """Regression test: verifies that distinct resumes predict distinct categories and not just Data Science."""
+    model_path = Path("model/resume_classifier.joblib")
+    if not model_path.is_file():
+        pytest.skip("Global trained model artifact not present for integration regression test.")
+
+    service = PredictionService(model_path=str(model_path))
+
+    domain_samples = {
+        "Java Developer": "Enterprise Java developer proficient in Core Java, Spring Boot, Spring Security, Hibernate, Kafka, Maven, JUnit, and Oracle database microservices.",
+        "DevOps Engineer": "Cloud DevOps engineer with extensive experience in Kubernetes, Docker, Terraform, Ansible, Jenkins CI/CD, AWS EKS, Prometheus, and Grafana.",
+        "HR": "Human resources director specializing in talent acquisition, recruitment lifecycle, employee relations, onboarding, Workday HRIS, and labor law compliance.",
+        "Web Designing": "UI/UX frontend designer experienced in Figma wireframes, design systems, HTML5, modern CSS3, Tailwind CSS, Bootstrap, and responsive layouts.",
+        "Database Administrator": "Production database administrator managing PostgreSQL and Oracle clusters, index optimization, execution plans, backup recovery, and replication.",
+        "Network Security Engineer": "Cybersecurity engineer specializing in next-generation firewalls, SIEM Splunk threat monitoring, penetration testing with Kali Linux, and SOC operations.",
+        "Data Science": "Machine learning engineer with experience in deep learning, TensorFlow, PyTorch, pandas, scikit-learn, statistical modeling, and data science pipelines.",
+    }
+
+    predicted_categories = set()
+    for expected_cat, text in domain_samples.items():
+        result = service.predict(text)
+        pred = result["predicted_category"]
+        predicted_categories.add(pred)
+        assert pred == expected_cat, f"Expected '{expected_cat}' but got '{pred}' (confidence: {result['confidence']})"
+
+    # Must predict at least 6 distinct categories across the 7 domain prompts
+    assert len(predicted_categories) >= 6
+    assert "Data Science" in predicted_categories
+
+
+def test_low_confidence_and_ambiguity_flag(trained_test_model):
+    """Verifies that an ambiguous text with close probabilities flags is_low_confidence."""
+    service = PredictionService(model_path=trained_test_model)
+    # Generic text that gives low confidence
+    generic_text = "Experienced professional working on modern technology projects, systems, documentation, and communication."
+    result = service.predict(generic_text)
+
+    assert "is_low_confidence" in result
+    assert "confidence_warning" in result
+    assert "margin" in result
+    if result["confidence"] < 0.22 or result["margin"] < 0.04:
+        assert result["is_low_confidence"] is True
+        assert result["confidence_warning"] is not None
+
+
+def test_evaluation_metrics_contains_confusion_matrix():
+    """Verifies that model/evaluation_metrics.json has confusion matrix and per-class metrics."""
+    metrics_path = Path("model/evaluation_metrics.json")
+    if not metrics_path.is_file():
+        pytest.skip("Global evaluation_metrics.json not present.")
+
+    with open(metrics_path, "r", encoding="utf-8") as f:
+        meta = json.load(f)
+
+    assert "confusion_matrix" in meta
+    assert isinstance(meta["confusion_matrix"], list)
+    assert len(meta["confusion_matrix"]) == meta["categories_count"]
+    assert "confusion_matrix_labels" in meta
+    assert "metrics" in meta
+    assert meta["metrics"]["accuracy"] >= 0.75

@@ -93,7 +93,11 @@ def init_db(database_url: str = None, create_tables: bool = True):
 
     if create_tables:
         from database.models import User, Prediction  # Ensure models are imported
-        Base.metadata.create_all(bind=_engine)
+        try:
+            Base.metadata.create_all(bind=_engine, checkfirst=True)
+        except Exception as e:
+            if "already exists" not in str(e).lower():
+                raise
         upgrade_schema(_engine)
 
     return db_session

@@ -1,331 +1,417 @@
 # ResumeAI — Resume Category Classification System
 
-**Subject Code**: 2CEAI702 — MLOps  
-**System Architecture**: Machine Learning Pipeline + Flask REST API + Docker + AWS EC2 + Google Cloud Platform
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/framework-Flask%203.0-green.svg)](https://flask.palletsprojects.com/)
+[![ML Pipeline](https://img.shields.io/badge/ML-scikit--learn-orange.svg)](https://scikit-learn.org/)
+[![Containerized](https://img.shields.io/badge/Docker-enabled-2496ED.svg)](https://www.docker.com/)
+[![AWS EC2](https://img.shields.io/badge/AWS-EC2%20Deployed-FF9900.svg)](https://aws.amazon.com/ec2/)
+[![Tests](https://img.shields.io/badge/tests-58%20passed-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)]()
+
+**Course / Subject**: 2CEAI702 — Machine Learning Operations (MLOps)  
+**Live AWS Deployment**: [http://13.60.105.66:5000](http://13.60.105.66:5000) *(AWS EC2 Ubuntu Host)*
 
 ---
 
-## 1. Project Overview & Objectives
+## 1. Project Overview & Problem Statement
 
-**ResumeAI** is an end-to-end Machine Learning Operations (MLOps) platform that automatically processes resumes in PDF or DOCX format, cleans and extracts raw text, and classifies the candidate into appropriate professional domains (e.g., *Data Science*, *DevOps Engineer*, *Python Developer*, *Web Designing*, *Java Developer*, etc.) using TF-IDF vectorization and a scikit-learn classifier pipeline.
+In modern recruitment and talent management pipelines, technical recruiters and automated applicant tracking systems (ATS) receive thousands of resumes daily in varying unstructured formats (PDF, Word DOCX, raw text). Manually screening and tagging candidates into appropriate engineering disciplines is slow, error-prone, and inconsistent.
 
-### Core MLOps Practicals Covered:
-1. **Practical 1**: Transforming ML notebook workflow into a modular Flask application with input validation, SQLAlchemy database, user auth, and unit tests.
-2. **Practical 2**: Containerizing the ML application with Docker, multi-stage lightweight Python 3.11 base image, and Gunicorn.
-3. **Practical 3**: Production deployment on an Amazon Web Services (AWS) EC2 Ubuntu instance with security groups.
-4. **Practical 4**: Production deployment on a Google Cloud Platform (GCP) Compute Engine VM with VPC firewall ingress rules.
-
----
-
-## 2. Technology Stack
-
-- **Machine Learning**: `scikit-learn`, `pandas`, `numpy`, `joblib`, TF-IDF Vectorizer, Logistic Regression.
-- **Backend & API**: Python 3.10 / 3.11, `Flask`, `Flask-WTF` (CSRF), `Werkzeug` (Password Hashing).
-- **Database**: SQLite (local development / testing), `SQLAlchemy` ORM (extensible to PostgreSQL).
-- **Document Processing**: `PyMuPDF` (fitz) for PDF files, `python-docx` for Word DOCX files.
-- **Frontend**: Modern responsive HTML5, CSS3, Vanilla JavaScript, Jinja2 Templates.
-- **DevOps & Containers**: `Docker`, `docker-compose`, `Gunicorn` WSGI server (`0.0.0.0:5000`).
-- **Cloud Infrastructure**: AWS EC2 (Ubuntu 24.04/22.04 LTS), GCP Compute Engine (Ubuntu LTS).
-- **Testing**: `pytest`, `pytest-cov`, Flask test client.
+**ResumeAI** is an end-to-end, production-minded Machine Learning Operations (MLOps) system that:
+1. Ingests resumes in PDF and DOCX formats or through direct text input.
+2. Extracts and sanitizes textual content using PyMuPDF and python-docx.
+3. Automatically classifies candidate resumes into 10 target industry domains using a TF-IDF vectorization and Logistic Regression pipeline.
+4. Generates calibrated class probability distributions and extracts domain skills.
+5. Employs real-time **Ambiguity & Low-Confidence Detection** to alert users when resumes span multi-disciplinary roles.
+6. Persists audit trails in SQLite with user authentication, CSRF security, and individual analysis reports.
+7. Packages the entire solution into a production Docker container deployed on AWS EC2.
 
 ---
 
-## 3. Project Directory Structure
+## 2. Key Features
 
-```
-D:\MLOPS/
-├── app.py                      # Flask factory & application entrypoint
-├── config.py                   # Environment configuration classes
-├── train_model.py              # ML training, validation, & serialization script
-├── requirements.txt            # Runtime dependencies
-├── requirements-dev.txt        # Development and testing dependencies
-├── Dockerfile                  # Container build instructions
-├── docker-compose.yml          # Container orchestration
-├── .dockerignore               # Container build exclusions
-├── .gitignore                  # Git exclusions (credentials, databases, venvs)
-├── .env.example                # Example environment variables
-├── README.md                   # Complete system documentation
-├── PRACTICAL_EVIDENCE.md       # Lab submission guide & screenshot checklist
+- **Document Processing**: Fast, secure parsing of PDF and DOCX files with magic byte validation, file size limits (5 MB max), and PII masking (emails, phone numbers, addresses).
+- **Machine Learning Inference**: TF-IDF feature extraction with resume boilerplate stop words, sublinear term frequency scaling, and regularized Logistic Regression.
+- **Model Comparison**: Automated training-time comparison between Logistic Regression and Multinomial Naive Bayes with cross-validation.
+- **Ambiguity Detection**: Automatically flags multi-disciplinary candidate profiles with low posterior confidence (< 22%) or narrow top-2 category margins (< 4%).
+- **SaaS Web Workspace**: Modern responsive UI with split-screen authentication, interactive dashboard, drag-and-drop file uploader, and persistent audit reports.
+- **Programmatic REST API**: Public `/health` probe and `/api/predict` endpoints supporting JSON and multipart/form-data.
+- **Containerized & Cloud-Ready**: Non-root Docker execution with Gunicorn WSGI server, healthchecks, and volume-mounted SQLite persistence deployed on AWS EC2.
+- **Rigorous Verification**: 58 automated unit, integration, parser, API, and regression tests with 100% pass rate.
+
+---
+
+## 3. Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Machine Learning** | `scikit-learn 1.5.2`, `pandas 2.2.3`, `numpy 2.0.2`, `joblib 1.4.2` |
+| **Backend & Web Framework** | Python 3.10 / 3.11, `Flask 3.0.3`, `Werkzeug 3.0.3`, `Flask-WTF 1.2.1` |
+| **Database & ORM** | SQLite 3, `SQLAlchemy 2.0.36` (with automated schema upgrades) |
+| **Document Processing** | `PyMuPDF 1.24.11` (fitz), `python-docx 1.1.2` |
+| **WSGI Server & Containers** | `Gunicorn 23.0.0`, `Docker`, `docker-compose` |
+| **Cloud Hosting** | AWS EC2 (Ubuntu 24.04 LTS), Security Groups |
+| **Testing & Quality** | `pytest 8.3.3`, `pytest-cov 5.0.0` |
+
+---
+
+## 4. Project Directory Structure
+
+```text
+ResumeAI (D:\MLOPS)
 ├── data/
-│   ├── README.md               # Dataset documentation & Kaggle download guide
-│   └── sample_resumes.csv      # Seed dataset for smoke testing
-├── model/
-│   └── resume_classifier.joblib# Serialized TF-IDF + Logistic Regression pipeline
-├── services/
-│   ├── resume_parser.py        # Safe PDF & DOCX text extraction
-│   └── prediction_service.py   # Model inference, probability scores & keyword extraction
-├── routes/
-│   ├── auth.py                 # Registration, login, logout, user sessions
-│   ├── main.py                 # UI routes: Landing, Dashboard, Upload, Result, History
-│   └── api.py                  # JSON REST API (/health, /api/predict)
+│   ├── README.md               # Dataset documentation & production guide
+│   └── sample_resumes.csv      # 150 balanced benchmark resumes across 10 classes
 ├── database/
-│   ├── db.py                   # SQLAlchemy instance
-│   └── models.py               # User and Prediction database models
-├── templates/                  # Jinja2 HTML templates
-│   ├── base.html
-│   ├── index.html
-│   ├── login.html
-│   ├── register.html
-│   ├── dashboard.html
-│   ├── upload.html
-│   ├── result.html
-│   ├── report.html
-│   ├── history.html
-│   ├── profile.html
-│   └── 404.html
+│   ├── db.py                   # Engine initialization, scoped sessions & schema upgrades
+│   └── models.py               # User and Prediction SQLAlchemy data models
+├── instance/
+│   └── resume_ai.db            # Persistent SQLite database (auto-created)
+├── model/
+│   ├── evaluation_metrics.json # Confusion matrix, classification report & metadata
+│   └── resume_classifier.joblib# Serialized TF-IDF + Logistic Regression pipeline
+├── routes/
+│   ├── api.py                  # Public REST API (/health, /api/predict)
+│   ├── auth.py                 # User authentication (register, login, logout)
+│   └── main.py                 # UI routes (index, dashboard, prediction, reports, history)
+├── services/
+│   ├── prediction_service.py   # Model loading, inference, confidence & skill extraction
+│   └── resume_parser.py        # PDF & DOCX document parsing and PII redaction
 ├── static/
-│   ├── css/style.css           # SaaS design system & responsive styling
-│   └── js/app.js               # Drag-and-drop file upload & dynamic preview
-└── tests/
-    ├── conftest.py             # Pytest fixtures & isolated in-memory DB
-    ├── test_app.py             # UI routing & template tests
-    ├── test_api.py             # REST API & health endpoint tests
-    ├── test_auth.py            # Authentication & access control tests
-    └── test_model.py           # ML inference & parser tests
+│   ├── css/
+│   │   └── style.css           # SaaS design system, responsive layout & dark/light themes
+│   └── js/
+│       └── app.js              # File upload drag-and-drop & loading overlays
+├── templates/
+│   ├── 404.html                # Custom error page
+│   ├── base.html               # Base layout template
+│   ├── dashboard.html          # User metrics & recent activity
+│   ├── history.html            # Audit history & report deletion
+│   ├── index.html              # Public SaaS landing page
+│   ├── login.html              # Sign-in form
+│   ├── profile.html            # Account profile overview
+│   ├── register.html           # User registration form
+│   ├── report.html             # Printable analysis report detail
+│   ├── result.html             # Live classification results & probability bars
+│   └── upload.html             # Document upload & text analysis interface
+├── tests/
+│   ├── conftest.py             # Pytest fixtures & isolated in-memory DB
+│   ├── test_api.py             # REST API & healthcheck tests
+│   ├── test_app.py             # UI routing & report tests
+│   ├── test_auth.py            # User authentication & session tests
+│   └── test_model.py           # ML training, inference & regression tests
+├── .dockerignore               # Container build exclusions
+├── .env.example                # Template environment variables
+├── .gitignore                  # Git exclusions (secrets, venv, databases, tars)
+├── app.py                      # Flask Application Factory & WSGI entrypoint
+├── config.py                   # Development, testing, and production configs
+├── docker-compose.yml          # Local container orchestration
+├── Dockerfile                  # Production container definition
+├── PRACTICAL_EVIDENCE.md       # College MLOps practical report evidence
+├── PROJECT_STRUCTURE.txt       # Compact plain-text directory tree
+├── pytest.ini                  # Pytest configuration
+├── README.md                   # Complete system documentation
+├── requirements.txt            # Pinned runtime dependencies
+├── requirements-dev.txt        # Development & testing dependencies
+└── train_model.py              # ML training, cross-validation & evaluation script
 ```
 
 ---
 
-## 4. Local Setup & Installation
+## 5. Machine Learning Pipeline & Evaluation
 
-### Step 1: Clone or navigate to the workspace
-```powershell
-cd D:\MLOPS
+### 5.1 Architecture & Approach
+
+The classification pipeline is built with scikit-learn:
+
+```
+[Raw Resume Text / PDF / DOCX]
+             │
+             ▼
+   [Text Preprocessing]
+   • Non-printable character removal
+   • Whitespace normalization
+   • PII redaction (email, phone, address)
+             │
+             ▼
+    [TF-IDF Vectorizer]
+   • max_features = 8,000
+   • ngram_range = (1, 2) (unigrams & bigrams)
+   • sublinear_tf = True (dampens repeated tokens)
+   • max_df = 0.85 (ignores corpus-wide ubiquitous words)
+   • min_df = 1
+   • stop_words = RESUME_STOP_WORDS (English stops + 40+ resume formatting terms)
+             │
+             ▼
+ [Classifier Comparison & Fit]
+   • Primary: Logistic Regression (C=3.0, class_weight='balanced', max_iter=1000)
+   • Comparison: Multinomial Naive Bayes (alpha=0.1)
+             │
+             ▼
+  [Inference & Ambiguity Engine]
+   • Category posterior probability distribution
+   • Low-confidence flag: is_low_confidence = True (if confidence < 22% or margin < 4%)
+   • Technical skill keyword extraction (24+ industry domains)
 ```
 
-### Step 2: Create and activate Python virtual environment
-```powershell
-# Create venv with Python 3.10
-py -3.10 -m venv venv
+### 5.2 Supported Categories (10 Domains)
 
-# Activate venv on Windows PowerShell
+1. `Data Science`
+2. `Python Developer`
+3. `Java Developer`
+4. `DevOps Engineer`
+5. `Web Designing`
+6. `Software Engineer`
+7. `HR`
+8. `Business Analyst`
+9. `Database Administrator`
+10. `Network Security Engineer`
+
+### 5.3 Verified Evaluation Metrics
+
+*Source: `model/evaluation_metrics.json` (evaluated on stratified 75/25 split of 150 benchmark samples)*
+
+| Metric | Score |
+| :--- | :--- |
+| **Total Samples** | 150 records (15 balanced records per class) |
+| **Train / Test Split** | 112 Train / 38 Test (Stratified) |
+| **Overall Accuracy** | **86.84%** (0.8684) |
+| **Weighted Precision** | **87.81%** (0.8781) |
+| **Weighted Recall** | **86.84%** (0.8684) |
+| **Weighted F1-Score** | **86.80%** (0.8680) |
+| **5-Fold Cross-Validation Accuracy** | **96.00%** (Macro-F1: 95.95%) |
+
+#### Per-Class Performance (Holdout Test Set)
+
+| Category | Precision | Recall | F1-Score | Support |
+| :--- | :---: | :---: | :---: | :---: |
+| **Business Analyst** | 1.00 | 1.00 | 1.00 | 4 |
+| **Data Science** | 1.00 | 1.00 | 1.00 | 3 |
+| **Database Administrator** | 0.80 | 1.00 | 0.89 | 4 |
+| **DevOps Engineer** | 0.67 | 0.50 | 0.57 | 4 |
+| **HR** | 1.00 | 1.00 | 1.00 | 4 |
+| **Java Developer** | 1.00 | 0.75 | 0.86 | 4 |
+| **Network Security Engineer** | 1.00 | 1.00 | 1.00 | 4 |
+| **Python Developer** | 0.75 | 0.75 | 0.75 | 4 |
+| **Software Engineer** | 0.50 | 0.67 | 0.57 | 3 |
+| **Web Designing** | 1.00 | 1.00 | 1.00 | 4 |
+
+> **Notice on Benchmark Metrics**: These evaluation metrics were computed on the curated 150-sample benchmark dataset (`sample_resumes.csv`). While they verify model convergence, feature calibration, and pipeline integrity, they reflect the distribution of this benchmark corpus and are not a guarantee of real-world production performance across external arbitrary document styles.
+
+---
+
+## 6. Installation & Local Setup (Windows PowerShell)
+
+### Prerequisites
+
+- **Python**: 3.10.x or 3.11.x
+- **Git**: Installed and configured
+- **Docker Desktop**: (Optional, for containerized execution)
+
+### Step 1: Clone Repository & Navigate
+
+```powershell
+git clone https://github.com/gallajagadeesh17/Resume-Category-Classification.git
+cd Resume-Category-Classification
+```
+
+### Step 2: Create Virtual Environment
+
+```powershell
+py -3.10 -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
-*(On Ubuntu/macOS: `python3 -m venv venv && source venv/bin/activate`)*
 
-### Step 3: Install dependencies
+*(On macOS/Linux: `python3 -m venv venv && source venv/bin/activate`)*
+
+### Step 3: Install Dependencies
+
 ```powershell
+pip install --upgrade pip
 pip install -r requirements-dev.txt
 ```
 
-### Step 4: Configure environment variables
+### Step 4: Environment Variables
+
 ```powershell
 Copy-Item .env.example .env
 ```
 
 ---
 
-## 5. Machine Learning Pipeline (`train_model.py`)
+## 7. Model Training & Serialization
 
-Train the model and save the fitted scikit-learn pipeline to `model/resume_classifier.joblib`:
+To retrain the model and regenerate `model/resume_classifier.joblib` and `model/evaluation_metrics.json`:
 
 ```powershell
-# Train using the smoke-test seed dataset
 python train_model.py --dataset data/sample_resumes.csv --output model/resume_classifier.joblib
-
-# Or train using the full Kaggle dataset
-python train_model.py --dataset data/UpdatedResumeDataSet.csv --output model/resume_classifier.joblib
 ```
 
-### 5.1 Programmatic Inference via PredictionService
-```python
-from services.prediction_service import get_prediction_service
-
-service = get_prediction_service()
-result = service.predict("Experienced DevOps engineer with Docker, Kubernetes, Terraform, and AWS.")
-
-print("Predicted Category:", result["predicted_category"])
-print("Confidence:", result["confidence"])
-print("Keywords:", result["top_keywords"])
-print("Probabilities:", result["probabilities"][:3])
-```
+Command-line arguments:
+- `--dataset`: Path to training CSV (default: `data/sample_resumes.csv`)
+- `--output`: Path to serialized model joblib (default: `model/resume_classifier.joblib`)
+- `--metrics-path`: Path to evaluation JSON (default: `model/evaluation_metrics.json`)
+- `--test-size`: Test split ratio (default: `0.25`)
+- `--random-seed`: Random seed for reproducibility (default: `42`)
+- `--no-compare`: Skip Naive Bayes comparison and train Logistic Regression only
 
 ---
 
-## 6. Running the Web Application Locally
+## 8. Running the Web Application
+
+Start the local Flask development server:
 
 ```powershell
-# Activate virtual environment
-.\venv\Scripts\Activate.ps1
-
-# Start the Flask application
 python app.py
 ```
-- Web Application: `http://127.0.0.1:5000`
-- System Health Check: `http://127.0.0.1:5000/health`
-- Resume Upload Interface: `http://127.0.0.1:5000/prediction`
-- User Registration: `http://127.0.0.1:5000/register`
-- User Sign In: `http://127.0.0.1:5000/login`
+
+Access the application in your browser:
+- **Landing Page**: `http://127.0.0.1:5000/`
+- **Health Check**: `http://127.0.0.1:5000/health`
+- **Resume Upload & Inference**: `http://127.0.0.1:5000/prediction`
+- **User Dashboard**: `http://127.0.0.1:5000/dashboard`
+- **Audit History**: `http://127.0.0.1:5000/history`
+- **Sign In / Sign Up**: `http://127.0.0.1:5000/login` | `http://127.0.0.1:5000/register`
 
 ---
 
-## 7. REST API Reference
+## 9. REST API Reference
 
-The application provides a public REST API for programmatic predictions without CSRF friction.
+The application exposes RESTful endpoints for programmatic integration:
 
-### Health Check Endpoint
+### 9.1 Health Check Endpoint
 - **URL**: `GET /health`
-- **Response**: `200 OK` (or `503 Service Unavailable` if model artifact is missing)
+- **Response**: `200 OK` (or `503 Service Unavailable`)
+
 ```json
 {
-  "status": "ok",
-  "service": "resume-category-classifier",
   "model_loaded": true,
-  "timestamp": "2026-10-18T00:00:00.000000Z"
+  "service": "resume-category-classifier",
+  "status": "ok",
+  "timestamp": "2026-10-18T10:00:00.000000Z"
 }
 ```
 
-### Prediction Endpoint
+### 9.2 Resume Prediction Endpoint
 - **URL**: `POST /api/predict`
-- **Content-Type**: `multipart/form-data` OR `application/json`
+- **Content-Type**: `application/json` OR `multipart/form-data`
 
-#### Option A: Multipart File Upload (PDF or DOCX)
-```bash
-curl -X POST http://127.0.0.1:5000/api/predict \
-  -F "file=@/path/to/candidate_resume.pdf"
-```
-
-#### Option B: JSON Text Payload
+#### Option A: JSON Payload
 ```bash
 curl -X POST http://127.0.0.1:5000/api/predict \
   -H "Content-Type: application/json" \
-  -d '{"text": "Senior DevOps Engineer with 6 years experience in Kubernetes, Docker, Terraform, AWS EC2, Jenkins, and Linux."}'
+  -d '{"text": "Senior Enterprise Java Developer with 8 years building distributed microservices using Spring Boot, Hibernate, and Apache Kafka."}'
 ```
 
-#### Successful JSON Response (`200 OK`)
+#### Option B: Multipart Document Upload (PDF / DOCX)
+```bash
+curl -X POST http://127.0.0.1:5000/api/predict \
+  -F "file=@/path/to/resume.pdf"
+```
+
+#### Sample Response (`200 OK`)
 ```json
 {
   "status": "success",
-  "filename": "candidate_resume.pdf",
-  "predicted_category": "DevOps Engineer",
-  "confidence": 0.885,
-  "confidence_percentage": 88.5,
-  "top_keywords": [
-    "Kubernetes",
-    "Docker",
-    "Terraform",
-    "Aws",
-    "Linux",
-    "Jenkins"
-  ],
+  "filename": "direct_text_input",
+  "predicted_category": "Java Developer",
+  "confidence": 0.6678,
+  "confidence_percentage": 66.8,
+  "is_low_confidence": false,
+  "confidence_warning": null,
+  "margin": 0.6207,
   "probabilities": [
-    {"category": "DevOps Engineer", "probability": 0.885, "percentage": 88.5},
-    {"category": "Python Developer", "probability": 0.052, "percentage": 5.2},
-    {"category": "Java Developer", "probability": 0.031, "percentage": 3.1}
+    {"category": "Java Developer", "percentage": 66.8, "probability": 0.6678},
+    {"category": "Network Security Engineer", "percentage": 4.7, "probability": 0.0471},
+    {"category": "Python Developer", "percentage": 4.1, "probability": 0.0413}
   ],
-  "text_length": 1420,
-  "timestamp": "2026-10-18T00:00:00.000000Z"
+  "top_keywords": ["Spring Boot", "Hibernate", "Java", "Microservices", "Kafka", "Spring"],
+  "text_length": 145,
+  "timestamp": "2026-10-18T10:00:00.000000Z"
 }
 ```
 
 ---
 
-### 7.1 Persistent Analysis Reports & Automated SQLite Migration
+## 10. Docker Containerization (Practical 2)
 
-ResumeAI stores completed resume evaluations in SQLite to enable retrospective audits and report views:
-- **Stored Artifacts**: Record ID, User ID, original filename, predicted category, confidence score, full posterior category probabilities (`probabilities_json`), extracted technical skills (`top_keywords_json`), document character length, and bounded PII-redacted text preview.
-- **Dedicated Report Route**: `GET /reports/<int:prediction_id>` renders the persistent report with category ranking, confidence meter, skill badges, and printable view.
-- **Security & Authorization**: User isolation strictly blocks access to reports belonging to other accounts (HTTP 403 Forbidden).
-- **Automated Schema Upgrade**: When connecting to an existing SQLite database, `upgrade_schema()` automatically checks for and adds missing columns (`probabilities_json`, `top_keywords_json`, `text_length`) using `ALTER TABLE` queries without dropping tables or losing historic user data.
+### 10.1 Build Docker Image
 
----
-
-## 8. Running Automated Tests
-
-Run the complete test suite (unit tests, API integration tests, parser tests, and auth tests):
-
-```powershell
-pytest -v
-```
-All tests use temporary SQLite databases and generated in-memory PDF/DOCX documents.
-
----
-
-## 9. Docker & Containerization (Practical 2)
-
-The application includes a production-grade `Dockerfile` using `python:3.10-slim`, non-root execution (`appuser`), Gunicorn WSGI server, container healthchecks, and volume-mounted persistent storage for SQLite.
-
-### 9.1 Build Docker Image
 ```powershell
 docker build -t resumeai:local .
 ```
 
-### 9.2 Run Container with Persistent Volume
+### 10.2 Run Container with SQLite Persistence
+
 ```powershell
-# Run with mapped port 5000:5000 and named volume for database persistence
 docker run -d `
-  --name resumeai-app `
+  --name resumeai `
   --restart unless-stopped `
   -p 5000:5000 `
   -v resumeai_data:/app/instance `
+  -v resumeai_uploads:/app/uploads `
   resumeai:local
 ```
 
-### 9.3 Alternative: Docker Compose
+### 10.3 Run with Docker Compose
+
 ```powershell
-# Start container with volume persistence
 docker compose up -d
-
-# Check running status and health
 docker compose ps
-
-# View container logs
 docker compose logs -f
-```
-
-### 9.4 Verify Container Health & Endpoints
-```powershell
-# Check container status
-docker ps
-
-# Inspect Docker healthcheck
-docker inspect --format='{{json .State.Health.Status}}' resumeai-app
-
-# Query container health endpoint
-Invoke-RestMethod -Uri "http://localhost:5000/health" -Method Get
-
-# Query prediction API inside container
-$body = @{ text = "Senior DevOps Engineer with Kubernetes, Docker, Terraform, and AWS." } | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:5000/api/predict" -Method Post -Body $body -ContentType "application/json"
-```
-
-### 9.5 Container Lifecycle Commands
-```powershell
-# View real-time logs
-docker logs -f resumeai-app
-
-# Stop container
-docker stop resumeai-app
-
-# Start container
-docker start resumeai-app
-
-# Remove container
-docker rm -f resumeai-app
 ```
 
 ---
 
-## 10. Cloud Deployment (Practicals 3 & 4)
+## 11. AWS EC2 Cloud Deployment (Practical 3)
 
-### Practical 3: AWS EC2 Deployment
-```bash
-# 1. Connect to EC2 instance via SSH
-ssh -i "your-key.pem" ubuntu@YOUR_EC2_PUBLIC_IP
+The application is deployed on an **AWS EC2 Ubuntu 24.04 LTS** instance:
 
-# 2. Install Docker on Ubuntu EC2
-sudo apt update && sudo apt install -y docker.io
-sudo systemctl enable --now docker
+- **Public Endpoint**: `http://13.60.105.66:5000`
+- **Public Health Probe**: `http://13.60.105.66:5000/health`
+- **Container Name**: `resumeai` (Restart policy: `unless-stopped`)
+- **Persistent Bind Mounts**:
+  - `/home/ubuntu/resumeai/data` $\rightarrow$ `/app/instance` (holds `resume_ai.db`)
+  - `/home/ubuntu/resumeai/uploads` $\rightarrow$ `/app/uploads`
 
-# 3. Transfer source / load image and run container
-sudo docker run -d --name resumeai-app --restart unless-stopped -p 5000:5000 -v resumeai_data:/app/instance resumeai:local
+### Deployment Steps:
+1. Provision EC2 Ubuntu instance with Security Group allowing ports `22` (SSH, restricted to your IP) and `5000` (Custom TCP).
+2. Transfer image archive: `scp -i <key.pem> resumeai-image.tar ubuntu@<ip>:~/resumeai/`
+3. Load image: `sudo docker load -i resumeai-image.tar`
+4. Run container with persistent host volumes.
+5. Verify container health: `curl -s http://localhost:5000/health`
+
+---
+
+## 12. Automated Testing
+
+The project includes 58 automated unit, integration, and regression tests:
+
+```powershell
+# Run all tests with verbose output
+pytest -v
+
+# Run with test coverage report
+pytest --cov=. --cov-report=term-missing
 ```
 
-### Practical 4: Google Cloud Platform (GCP) Deployment
-```bash
-# 1. Connect to GCP Compute Engine VM via SSH
-# 2. Configure VPC ingress firewall rule allow-ml-app-5000 (TCP:5000)
-# 3. Run container on GCP VM
-sudo docker run -d --name resumeai-app --restart unless-stopped -p 5000:5000 -v resumeai_data:/app/instance resumeai:local
-```
+Test suite coverage:
+- `tests/test_api.py`: Health probes, JSON/multipart prediction, bad payload error codes (400, 413, 415, 503).
+- `tests/test_app.py`: Route navigation, login redirection, template rendering, report persistence, unauthorized access checks.
+- `tests/test_auth.py`: Registration, password hashing, session management, protected route guards.
+- `tests/test_model.py`: Data validator, column detection, TF-IDF pipeline, confusion matrix integrity, multi-class distinctiveness regression tests, ambiguity detection.
 
+---
+
+## 13. Limitations & Future Roadmap
+
+1. **Benchmark Corpus Size**: The seed dataset (`sample_resumes.csv`) contains 150 records for laboratory smoke testing. For production deployments, training on Kaggle's 962-resume dataset (`UpdatedResumeDataSet.csv`) is recommended.
+2. **Multi-Role Overlap**: Students with multi-disciplinary backgrounds (e.g., Computer Engineering in AI with web development skills) correctly receive shared probabilities. Future versions can incorporate multi-label classification to assign multiple secondary tags.
+3. **Deep Learning Embeddings**: Transition from TF-IDF n-grams to transformer embeddings (e.g., `all-MiniLM-L6-v2`) for semantic similarity matching.
+4. **Automated CI/CD**: Implement GitHub Actions pipeline to test, build, and deploy container images to AWS ECR/ECS automatically.
+
+---
+
+## 14. License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

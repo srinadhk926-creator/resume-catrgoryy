@@ -6,12 +6,16 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+*.log
 
 # Virtual Environments
 venv/
 .venv/
 env/
 ENV/
+
+# Agent artifacts & temporary tools
+.agents/
 
 # Environment variables & secrets
 .env
@@ -26,10 +30,12 @@ instance/
 *.sqlite3
 *.db
 
-# Temporary upload storage
+# Temporary upload storage & archives
 uploads/
 temp/
 *.tmp
+resumeai-image.tar
+*.tar
 
 # IDE & OS files
 .vscode/
@@ -42,7 +48,7 @@ data/UpdatedResumeDataSet.csv
 data/*.pdf
 data/*.docx
 
-# Model cache & checkpoints
+# Model cache & checkpoints (keep production joblib artifact and gitkeep)
 model/*.pkl
-model/*.joblib
+!model/resume_classifier.joblib
 !model/.gitkeep

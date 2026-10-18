@@ -27,12 +27,13 @@ The training pipeline in `train_model.py` accepts any standard CSV formatted wit
 
 ---
 
-## 2. Seed / Smoke-Testing Dataset (`sample_resumes.csv`)
+## 2. Benchmark / Training Dataset (`sample_resumes.csv`)
 
 - **Location**: `data/sample_resumes.csv`
-- **Size**: 40 records (4 balanced records per category across 10 categories).
-- **Purpose**: Verifies that the training pipeline, TF-IDF vectorization, classifier comparison, stratification, serialization, and test suite execute without errors out of the box in offline and CI environments.
-- **Limitation**: While accuracy on the 10-record test split is high (90%), the small sample size (N=40) means this score is purely illustrative for system verification (smoke testing). It must not be cited as real-world production performance.
+- **Size**: 150 records (15 balanced records per category across 10 categories).
+- **Features**: Realistic professional summaries, specialized skill sets, project descriptions, framework proficiencies, and industry keywords across all 10 domain disciplines.
+- **Vocabulary Filtering**: The training pipeline applies domain-aware resume boilerplate stop words (excluding generic words like "curriculum", "btech", "gpa", "worked", "skills", etc.) and `max_df=0.85` so the model focuses on discriminative technical competencies.
+- **Ambiguity Detection**: Evaluates prediction margins and confidence thresholds (< 22% or margin < 4%) to flag multi-disciplinary resumes with clear low-confidence indicators.
 
 ---
 

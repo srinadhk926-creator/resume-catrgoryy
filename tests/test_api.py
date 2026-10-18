@@ -27,6 +27,9 @@ def test_api_predict_json_text_success(client):
     assert "predicted_category" in data
     assert "confidence" in data
     assert 0.0 <= data["confidence"] <= 1.0
+    assert "is_low_confidence" in data
+    assert "margin" in data
+    assert "confidence_warning" in data
     assert isinstance(data["top_keywords"], list)
     assert isinstance(data["probabilities"], list)
     assert len(data["probabilities"]) > 0

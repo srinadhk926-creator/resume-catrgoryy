@@ -197,10 +197,27 @@ class PredictionService:
 
         keywords = self.extract_keywords(cleaned_text)
 
+        # Calculate runner-up margin and confidence quality
+        margin = confidence
+        if len(probabilities_list) >= 2:
+            margin = round(float(probabilities_list[0]["probability"] - probabilities_list[1]["probability"]), 4)
+
+        # In a 10-class problem (uniform chance = 10%), confidence < 22% or margin < 4% indicates high ambiguity
+        is_low_confidence = bool(confidence < 0.22 or margin < 0.04)
+        confidence_warning = (
+            "Low confidence prediction. The resume text has multi-disciplinary skills across multiple domains "
+            "or limited domain-specific keywords. Please review alternative category probabilities below."
+            if is_low_confidence else None
+        )
+
         return {
             "predicted_category": predicted_category,
             "confidence": confidence,
             "confidence_percentage": round(confidence * 100, 1),
+            "is_low_confidence": is_low_confidence,
+            "confidence_warning": confidence_warning,
+            "margin": margin,
+            "margin_percentage": round(margin * 100, 1),
             "probabilities": probabilities_list,
             "top_keywords": keywords,
             "text_length": len(cleaned_text),
